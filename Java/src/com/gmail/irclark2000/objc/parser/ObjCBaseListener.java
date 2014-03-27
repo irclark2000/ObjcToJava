@@ -78,20 +78,17 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterShift_expression(ObjCParser.Shift_expressionContext ctx) { }
 	@Override public void exitShift_expression(ObjCParser.Shift_expressionContext ctx) { }
 
-	@Override public void enterDeclaration_type(ObjCParser.Declaration_typeContext ctx) { }
-	@Override public void exitDeclaration_type(ObjCParser.Declaration_typeContext ctx) { }
-
 	@Override public void enterMethod_declaration(ObjCParser.Method_declarationContext ctx) { }
 	@Override public void exitMethod_declaration(ObjCParser.Method_declarationContext ctx) { }
 
 	@Override public void enterType_name(ObjCParser.Type_nameContext ctx) { }
 	@Override public void exitType_name(ObjCParser.Type_nameContext ctx) { }
 
-	@Override public void enterMethod_definition(ObjCParser.Method_definitionContext ctx) { }
-	@Override public void exitMethod_definition(ObjCParser.Method_definitionContext ctx) { }
-
 	@Override public void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
 	@Override public void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
+
+	@Override public void enterMethod_definition(ObjCParser.Method_definitionContext ctx) { }
+	@Override public void exitMethod_definition(ObjCParser.Method_definitionContext ctx) { }
 
 	@Override public void enterForcomplete2(ObjCParser.Forcomplete2Context ctx) { }
 	@Override public void exitForcomplete2(ObjCParser.Forcomplete2Context ctx) { }
@@ -207,6 +204,9 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterKeyword_argument(ObjCParser.Keyword_argumentContext ctx) { }
 	@Override public void exitKeyword_argument(ObjCParser.Keyword_argumentContext ctx) { }
 
+	@Override public void enterDotidentifier(ObjCParser.DotidentifierContext ctx) { }
+	@Override public void exitDotidentifier(ObjCParser.DotidentifierContext ctx) { }
+
 	@Override public void enterSpecifier_qualifier_list(ObjCParser.Specifier_qualifier_listContext ctx) { }
 	@Override public void exitSpecifier_qualifier_list(ObjCParser.Specifier_qualifier_listContext ctx) { }
 
@@ -254,6 +254,9 @@ public class ObjCBaseListener implements ObjCListener {
 
 	@Override public void enterInstance_method_definition(ObjCParser.Instance_method_definitionContext ctx) { }
 	@Override public void exitInstance_method_definition(ObjCParser.Instance_method_definitionContext ctx) { }
+
+	@Override public void enterSetter_call(ObjCParser.Setter_callContext ctx) { }
+	@Override public void exitSetter_call(ObjCParser.Setter_callContext ctx) { }
 
 	@Override public void enterAdecRecurse(ObjCParser.AdecRecurseContext ctx) { }
 	@Override public void exitAdecRecurse(ObjCParser.AdecRecurseContext ctx) { }
@@ -474,11 +477,11 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterSelector_expression(ObjCParser.Selector_expressionContext ctx) { }
 	@Override public void exitSelector_expression(ObjCParser.Selector_expressionContext ctx) { }
 
-	@Override public void enterDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx) { }
-	@Override public void exitDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx) { }
-
 	@Override public void enterDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx) { }
 	@Override public void exitDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx) { }
+
+	@Override public void enterDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx) { }
+	@Override public void exitDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx) { }
 
 	@Override public void enterSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx) { }
 	@Override public void exitSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx) { }

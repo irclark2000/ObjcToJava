@@ -1,7 +1,6 @@
 // Generated from ObjC.g4 by ANTLR 4.0
 package com.gmail.irclark2000.objc.parser;
 import org.antlr.v4.runtime.tree.*;
-import org.antlr.v4.runtime.Token;
 
 public interface ObjCListener extends ParseTreeListener {
 	void enterSynchronized_statement(ObjCParser.Synchronized_statementContext ctx);
@@ -76,20 +75,17 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterShift_expression(ObjCParser.Shift_expressionContext ctx);
 	void exitShift_expression(ObjCParser.Shift_expressionContext ctx);
 
-	void enterDeclaration_type(ObjCParser.Declaration_typeContext ctx);
-	void exitDeclaration_type(ObjCParser.Declaration_typeContext ctx);
-
 	void enterMethod_declaration(ObjCParser.Method_declarationContext ctx);
 	void exitMethod_declaration(ObjCParser.Method_declarationContext ctx);
 
 	void enterType_name(ObjCParser.Type_nameContext ctx);
 	void exitType_name(ObjCParser.Type_nameContext ctx);
 
-	void enterMethod_definition(ObjCParser.Method_definitionContext ctx);
-	void exitMethod_definition(ObjCParser.Method_definitionContext ctx);
-
 	void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
 	void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
+
+	void enterMethod_definition(ObjCParser.Method_definitionContext ctx);
+	void exitMethod_definition(ObjCParser.Method_definitionContext ctx);
 
 	void enterForcomplete2(ObjCParser.Forcomplete2Context ctx);
 	void exitForcomplete2(ObjCParser.Forcomplete2Context ctx);
@@ -205,6 +201,9 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterKeyword_argument(ObjCParser.Keyword_argumentContext ctx);
 	void exitKeyword_argument(ObjCParser.Keyword_argumentContext ctx);
 
+	void enterDotidentifier(ObjCParser.DotidentifierContext ctx);
+	void exitDotidentifier(ObjCParser.DotidentifierContext ctx);
+
 	void enterSpecifier_qualifier_list(ObjCParser.Specifier_qualifier_listContext ctx);
 	void exitSpecifier_qualifier_list(ObjCParser.Specifier_qualifier_listContext ctx);
 
@@ -252,6 +251,9 @@ public interface ObjCListener extends ParseTreeListener {
 
 	void enterInstance_method_definition(ObjCParser.Instance_method_definitionContext ctx);
 	void exitInstance_method_definition(ObjCParser.Instance_method_definitionContext ctx);
+
+	void enterSetter_call(ObjCParser.Setter_callContext ctx);
+	void exitSetter_call(ObjCParser.Setter_callContext ctx);
 
 	void enterAdecRecurse(ObjCParser.AdecRecurseContext ctx);
 	void exitAdecRecurse(ObjCParser.AdecRecurseContext ctx);
@@ -472,11 +474,11 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterSelector_expression(ObjCParser.Selector_expressionContext ctx);
 	void exitSelector_expression(ObjCParser.Selector_expressionContext ctx);
 
-	void enterDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx);
-	void exitDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx);
-
 	void enterDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx);
 	void exitDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx);
+
+	void enterDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx);
+	void exitDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx);
 
 	void enterSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx);
 	void exitSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx);

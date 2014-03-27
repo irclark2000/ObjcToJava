@@ -1,6 +1,7 @@
 package com.gmail.irclark2000.objc;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +62,6 @@ public class Parse {
 			} else if (arg.equals("-header")) {
 				if (i >= args.length - 1 || args[i + 1].startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
-					;
 				} else {
 					useAutoHeaderFile = false;
 					useHeaderFile = true;
@@ -69,6 +69,22 @@ public class Parse {
 					i++;
 				}
 				continue;
+			} else if (arg.equals("-allheader")) {
+				if (i >= args.length - 1 || args[i + 1].startsWith("-")) {
+					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
+				} else {
+					File f = new File(args[i+1]);
+					File[] files = f.listFiles();
+					for ( File file : files) {
+						if (file.isFile() && file.getAbsolutePath().endsWith(".h")) {
+							headerFileNames.add(file.getAbsolutePath());
+						}
+					}
+					i++;
+
+					useAutoHeaderFile = false;
+					useHeaderFile = true;
+				}
 			} else if (i == args.length - 1) {
 				if (arg.startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
@@ -90,7 +106,13 @@ public class Parse {
 		ClassDescription cd = new ClassDescription();
 		Map<String, ClassDescription.ClassDeclaration> headerDeclarations = cd
 				.getHeaders();
+		boolean first = true;
 		if (useHeaderFile) {
+			if (!first) {
+				cd = new ClassDescription(headerDeclarations);
+			} else {
+				first = false;
+			}
 			for (String headerFileName : headerFileNames) {
 				BufferedInputStream instream = null;
 				instream = new BufferedInputStream(new FileInputStream(
@@ -106,10 +128,8 @@ public class Parse {
 				instream.close();
 			}
 		}
-		
-		Set<String> keys = cd.getHeaders().keySet();
-		keys.add(null);
 
+		// Set<String> keys = cd.getHeaders().keySet();
 		if (inputFileName.length() > 0) {
 			BufferedInputStream instream = null;
 			instream = new BufferedInputStream(new FileInputStream(

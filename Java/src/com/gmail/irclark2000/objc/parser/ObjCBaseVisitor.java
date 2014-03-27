@@ -1,8 +1,6 @@
 // Generated from ObjC.g4 by ANTLR 4.0
 package com.gmail.irclark2000.objc.parser;
 import org.antlr.v4.runtime.tree.*;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 public class ObjCBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements ObjCVisitor<T> {
 	@Override public T visitSynchronized_statement(ObjCParser.Synchronized_statementContext ctx) { return visitChildren(ctx); }
