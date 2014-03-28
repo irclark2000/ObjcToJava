@@ -5,9 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -15,6 +13,12 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import com.gmail.irclark2000.objc.parser.ObjCLexer;
 import com.gmail.irclark2000.objc.parser.ObjCParser;
+
+/**
+ * @author Dad
+ * Driver class for running the parser from the command line
+ *
+ */
 
 public class Parse {
 
@@ -36,6 +40,7 @@ public class Parse {
 	private static boolean useAutoHeaderFile = false;
 	private static String outputFileName = "";
 	private static String inputFileName = "";
+	private static String baseName = "";
 	private static ArrayList<String> headerFileNames = new ArrayList<String>();
 
 	/**
@@ -91,6 +96,7 @@ public class Parse {
 					;
 				} else {
 					inputFileName = arg;
+					baseName = getBaseName (inputFileName);
 				}
 			}
 		}
@@ -104,6 +110,7 @@ public class Parse {
 			}
 		}
 		ClassDescription cd = new ClassDescription();
+		cd.setClassFileName(baseName);
 		Map<String, ClassDescription.ClassDeclaration> headerDeclarations = cd
 				.getHeaders();
 		boolean first = true;
@@ -143,8 +150,9 @@ public class Parse {
 
 			// walk the tree and activate so we can listen
 			ParseTreeWalker walker = new ParseTreeWalker();
-			walker.walk(new ParserObjcListener(new ClassDescription(
-					headerDeclarations), false), tree);
+			cd = new ClassDescription(headerDeclarations);
+			cd.setClassFileName(baseName);
+			walker.walk(new ParserObjcListener(cd, false), tree);
 		}
 	}
 
@@ -160,6 +168,14 @@ public class Parse {
 		return hFileName;
 	}
 
+	public static String getBaseName (String fName) {
+		String bName = fName;
+		int index = fName.lastIndexOf('.');
+		if (index >= 0) {
+			bName = fName.substring(0, index);
+		}
+		return bName;
+	}
 	private static void printErrorAndExit(int errorCode) {
 		switch (errorCode) {
 		case USAGE_METHOD_CODE:

@@ -6,6 +6,8 @@ import java.util.List;
 
 public class CodeFormatter {
 	public static final String REVERSE_ARGS_MARKER = "ReverseArgs";
+	private static final String SETTER = "\n%s get%s() {\nreturn this.%s; \n}\n";
+	private static final String GETTER = "\nvoid set%s(%s %s) {\nthis.%s = %s;\n}\n";
 
 	public String identifierFormatter(String id) {
 		if (id.equals("NSString") || id.equals("NSMutableString")) {
@@ -21,21 +23,65 @@ public class CodeFormatter {
 			id = "false";
 		} else if (id.equals("NSObject")) {
 			id = "Object";
+		} else if (id.equals("self")) {
+			id = "this";
 		} else if (id.equals("bool")) {
 			id = "boolean";
 		}
 		return id;
 	}
 
-	public ArrayList<String> generateGetters(ClassDescription.ClassDeclaration cd) {
+	public ArrayList<String> generateGetters(ClassDescription cd, ClassDescription.ClassDeclaration cDec, String className)  {
 		ArrayList<String> code = new ArrayList<String>();
-		ArrayList<String> properties = cd.getProperties();
-		for (String property : properties) {
-			String c = property;
-			code.add(fixDeclarations(c));
-		}
+
+			ArrayList<String> synths = cDec.getSynthesized();
+			for (String syn : synths) {
+				String type = getPropertyType(syn, className, cd, cDec);
+				if (type.length() > 0) {
+					String getSet = makeSetGet(syn, type); 
+					code.add(getSet);
+				}
+//				code.add(fixDeclarations(c));
+			}
+			
 
 		return code;
+	}
+	
+	private String makeSetGet(String vName, String type) {
+		String code = "";
+		String vCap = vName.substring(0, 1).toUpperCase() + vName.substring(1);
+		code = String.format (SETTER, type, vCap, vName);
+		code += String.format (GETTER, vCap, type, vName, vName, vName);
+		return code;
+	}
+
+	private String getPropertyType(String vName, String className, ClassDescription cd, ClassDescription.ClassDeclaration cDecl) {
+		String type = "";
+		ClassDescription.ClassDeclaration cDec = null;
+		for (int i=0; i < 2; i++) {
+			switch(i) {
+			case 0:
+				cDec = cd.getHeaders().get(className);
+				break;
+			case 1:
+				cDec = cd.getmFiles().get(className);
+				break;
+			}
+	
+		   ArrayList<String> properties = cDec.getProperties();
+		   for (String property : properties) {
+			   String [] parts = property.split("[ ]*");
+			   if (parts[parts.length-1].equals(vName)) {
+				   type = parts[0];
+				   for (int j = 1; j < parts.length-1; j++) {
+					   type += " " + parts[j];
+				   }
+				   return type;
+			   }
+		   }
+		}
+		return type;
 	}
 
 	public String generateConstructor(String code, String className) {

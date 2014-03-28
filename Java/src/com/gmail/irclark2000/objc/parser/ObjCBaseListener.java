@@ -435,6 +435,9 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterAbstract_declarator_suffix(ObjCParser.Abstract_declarator_suffixContext ctx) { }
 	@Override public void exitAbstract_declarator_suffix(ObjCParser.Abstract_declarator_suffixContext ctx) { }
 
+	@Override public void enterGetter_call(ObjCParser.Getter_callContext ctx) { }
+	@Override public void exitGetter_call(ObjCParser.Getter_callContext ctx) { }
+
 	@Override public void enterClass_list(ObjCParser.Class_listContext ctx) { }
 	@Override public void exitClass_list(ObjCParser.Class_listContext ctx) { }
 

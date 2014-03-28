@@ -432,6 +432,9 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterAbstract_declarator_suffix(ObjCParser.Abstract_declarator_suffixContext ctx);
 	void exitAbstract_declarator_suffix(ObjCParser.Abstract_declarator_suffixContext ctx);
 
+	void enterGetter_call(ObjCParser.Getter_callContext ctx);
+	void exitGetter_call(ObjCParser.Getter_callContext ctx);
+
 	void enterClass_list(ObjCParser.Class_listContext ctx);
 	void exitClass_list(ObjCParser.Class_listContext ctx);
 

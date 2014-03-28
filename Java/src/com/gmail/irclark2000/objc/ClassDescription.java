@@ -7,28 +7,42 @@ import java.util.Map;
 public class ClassDescription {
 	private Map<String, ClassDeclaration> headers;
 	private Map<String, ClassDeclaration> mFiles;
-	
+	private String classFileName;
+
 	public Map<String, ClassDeclaration> getHeaders() {
 		return headers;
 	}
+
 	public void setHeaders(Map<String, ClassDeclaration> headers) {
 		this.headers = headers;
 	}
+
 	public Map<String, ClassDeclaration> getmFiles() {
 		return mFiles;
 	}
+
 	public void setmFiles(Map<String, ClassDeclaration> mFiles) {
 		this.mFiles = mFiles;
 	}
+
+	public String getClassFileName() {
+		return classFileName;
+	}
+
+	public void setClassFileName(String classFileName) {
+		this.classFileName = classFileName;
+	}
+
 	ClassDescription(Map<String, ClassDeclaration> headerFile) {
 		this.headers = headerFile;
 		this.mFiles = new HashMap<String, ClassDeclaration>();
 	}
+
 	ClassDescription() {
 		this.headers = new HashMap<String, ClassDeclaration>();
 		this.mFiles = new HashMap<String, ClassDeclaration>();
 	}
-	
+
 	public static class ClassDeclaration {
 		public ArrayList<String> getProtocols() {
 			return protocols;
@@ -54,6 +68,11 @@ public class ClassDescription {
 			variables.add(variable);
 		}
 
+		public void addVariables(ArrayList<String> variables) {
+			for (String variable : variables) {
+				this.addVariable(variable);
+			}
+		}
 		public ArrayList<String> getProperties() {
 			return properties;
 		}
@@ -64,6 +83,11 @@ public class ClassDescription {
 
 		public void addProperty(String property) {
 			properties.add(property);
+		}
+		public void addProperties(ArrayList<String> declarations) {
+			for (String decl : declarations) {
+				this.addProperty(decl);
+			}
 		}
 
 		public ArrayList<String> getSynthesized() {
@@ -77,6 +101,11 @@ public class ClassDescription {
 		public void addSynthesized(String synthesize) {
 			synthesized.add(synthesize);
 		}
+		public void addSynthesized(ArrayList<String> definitions) {
+			for (String def : definitions) {
+				this.addSynthesized(def);
+			}
+		}
 
 		public ArrayList<String> getDynamic() {
 			return dynamic;
@@ -88,6 +117,11 @@ public class ClassDescription {
 
 		public void addDynamic(String dyn) {
 			dynamic.add(dyn);
+		}
+		public void addDynamic(ArrayList<String> dynamic) {
+			for (String def : dynamic) {
+				this.addDynamic(def);
+			}
 		}
 
 		public ArrayList<String> getEnums() {
@@ -110,6 +144,11 @@ public class ClassDescription {
 			this.method_definitions.add(method_definition);
 		}
 
+		public void addMethod_definitions(ArrayList<String> definitions) {
+			for (String def : definitions) {
+				this.addMethod_definition(def);
+			}
+		}
 		public void clearMethod_definition() {
 			this.method_definitions.clear();
 		}
@@ -122,6 +161,12 @@ public class ClassDescription {
 			this.function_definitions.add(function_definition);
 		}
 
+		public void addFunction_definitions(ArrayList<String> definitions) {
+			for (String def : definitions) {
+				this.addFunction_definition(def);
+			}
+		}
+
 		public void clearFunction_definition() {
 			this.function_definitions.clear();
 		}
@@ -130,6 +175,11 @@ public class ClassDescription {
 			return method_declarations;
 		}
 
+		public void addMethod_declarations(ArrayList<String> declaration) {
+			for (String decl : declaration) {
+				this.addMethod_declaration(decl);
+			}
+		}
 		public void addMethod_declaration(String method_declaration) {
 			this.method_declarations.add(method_declaration);
 		}
@@ -137,7 +187,6 @@ public class ClassDescription {
 		public void clearMethod_declaration() {
 			this.method_declarations.clear();
 		}
-
 
 		public ArrayList<String> getFunction_declarations() {
 			return function_declarations;

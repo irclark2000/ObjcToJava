@@ -41,8 +41,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 	private ClassDescription classDescription;
 	private Map<String, ClassDescription.ClassDeclaration> classDeclarations;
 	private Map<String, ClassDescription.ClassDeclaration> headerDeclarations;
-	//private ClassDescription.ClassDeclaration activeCD = null;
-	//private ClassDescription.ClassDeclaration activeHeaderCD = null;
+	// private ClassDescription.ClassDeclaration activeCD = null;
+	// private ClassDescription.ClassDeclaration activeHeaderCD = null;
 	private String gClassName = "";
 	private boolean parsingHeader = false;
 	private String gSuperClassName = "";
@@ -103,28 +103,41 @@ public class ParserObjcListener extends ObjCBaseListener {
 			myClass = myClass + " extends " + gSuperClassName;
 		}
 		myClass = myClass + " {\n";
+		ClassDescription.ClassDeclaration cDec = null;
 		if (ctx.implementation_definition_list() != null) {
-			String code = getCode(ctx.implementation_definition_list());
-			code = code.replaceAll(CLASSNAME_MARKER, gClassName);
-			code = codeFormat.codeIndenter(code);
-			myClass = myClass + code;
+			cDec = getDeclaration(ctx.implementation_definition_list());
 		}
-		ClassDescription.ClassDeclaration cd = choseMapAndDeclaration(gClassName);
-		ArrayList<String> setters = codeFormat.generateGetters(cd);
-		if (setters.size() > 0) {
-			myClass += "\n";
-			for (String setter : setters) {
-				myClass += setter;
+		// get methods first
+		if (cDec != null) {
+			for (String method : cDec.getMethod_definitions()) {
+				String code = method.replaceAll(CLASSNAME_MARKER, gClassName);
+				if (code.startsWith("public void dealloc")) {
+				    continue;
+				}
+				code = codeFormat.codeIndenter(code);
+				myClass = myClass + code;
 			}
 		}
-		ArrayList<String> variables = cd.getVariables();
-		if (variables.size() > 0) {
-			myClass += "\n";
-			for (String variable : variables) {
-				myClass += codeFormat.fixDeclarations(variable);
+
+		// now getters and setters
+		if (cDec != null) {
+			ArrayList<String> setters = codeFormat.generateGetters(classDescription, cDec, gClassName);
+			if (setters.size() > 0) {
+				myClass += "\n";
+				for (String setter : setters) {
+					myClass += setter;
+				}
 			}
-			variables.clear();
 		}
+		
+//		ArrayList<String> variables = cd.getVariables();
+//		if (variables.size() > 0) {
+//			myClass += "\n";
+//			for (String variable : variables) {
+//				myClass += codeFormat.fixDeclarations(variable);
+//			}
+//			variables.clear();
+//		}
 
 		ArrayList<String> gVariables = ClassDeclaration.getClassDeclaration(
 				classDeclarations, "*").getVariables();
@@ -135,13 +148,13 @@ public class ParserObjcListener extends ObjCBaseListener {
 			}
 			gVariables.clear();
 		}
-		ArrayList<String> properties = cd.getProperties();
-		if (properties.size() > 0) {
-			myClass += "\n";
-			for (String variable : properties) {
-				myClass += variable;
-			}
-		}
+//		ArrayList<String> properties = cd.getProperties();
+//		if (properties.size() > 0) {
+//			myClass += "\n";
+//			for (String variable : properties) {
+//				myClass += variable;
+//			}
+//		}
 
 		myClass = myClass + "}\n";
 		setCode(ctx, myClass);
@@ -150,32 +163,31 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitProperty_implementation(
 			ObjCParser.Property_implementationContext ctx) {
-		ClassDescription.ClassDeclaration cd = choseMapAndDeclaration(gClassName);
+		String code = ctx.getText();
+		String.format("%s", code);
+
+		ClassDescription.ClassDeclaration cd = new ClassDescription.ClassDeclaration();
 		ArrayList<String> holder = cd.getSynthesized();
-		if (!ctx.getChild(0).getText().equals("@dynamic")) {
+		if (ctx.getChild(0).getText().equals("@dynamic")) {
 			holder = cd.getDynamic();
 		}
-
-		String[] parts = getCode(ctx.property_synthesize_list()).split(",");
-		for (String item : parts) {
+		ArrayList<String> properties = getList(ctx.property_synthesize_list());
+		for (String item : properties) {
 			holder.add(item);
 		}
-		setCode(ctx, "");
+		setDeclaration(ctx, cd);
 	}
 
 	@Override
 	public void exitProperty_synthesize_list(
 			ObjCParser.Property_synthesize_listContext ctx) {
-		String list = "";
+		ArrayList<String> list = new ArrayList<String>();
 		for (Property_synthesize_itemContext item : ctx
 				.property_synthesize_item()) {
-			if (list.length() == 0) {
-				list = getCode(item);
-			} else {
-				list += "," + getCode(item);
-			}
+			String itemText = getCode(item);
+			list.add(itemText);
 		}
-		setCode(ctx, list);
+		setList(ctx, list);
 	}
 
 	@Override
@@ -211,29 +223,29 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitProperty_declaration(
 			ObjCParser.Property_declarationContext ctx) {
 
-		String property = getCode(ctx.struct_declaration());
-		setCode(ctx, property);
+		setList(ctx, getList(ctx.struct_declaration()));
 	}
 
 	@Override
 	public void exitStruct_declaration(ObjCParser.Struct_declarationContext ctx) {
 		String sDecl = getCode(ctx.specifier_qualifier_list()) + " ";
-		sDecl += getCode(ctx.struct_declarator_list()) + ";\n";
-		setCode(ctx, sDecl);
+		ArrayList<String> list = getList(ctx.struct_declarator_list());
+		ArrayList<String> code = new ArrayList<String>();
+		for (String item : list) {
+			String sd = (sDecl + item).trim();
+			code.add(sd);
+		}
+		setList(ctx, code);
 	}
 
 	@Override
 	public void exitStruct_declarator_list(
 			ObjCParser.Struct_declarator_listContext ctx) {
-		String list = "";
+		ArrayList<String> list = new ArrayList<String>();
 		for (Struct_declaratorContext item : ctx.struct_declarator()) {
-			if (list.length() == 0) {
-				list = getCode(item);
-			} else {
-				list += ", " + getCode(item);
-			}
+			list.add(getCode(item));
 		}
-		setCode(ctx, list);
+		setList(ctx, list);
 	}
 
 	@Override
@@ -257,19 +269,50 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitImplementation_definition(
 			ObjCParser.Implementation_definitionContext ctx) {
-		String def = getCode(ctx.getChild(0));
-		setCode(ctx, def);
+		ClassDescription.ClassDeclaration cDec = new ClassDescription.ClassDeclaration();
+		if (ctx.function_definition() != null) {
+			String function = getCode(ctx.function_definition());
+			cDec.addFunction_definition(function);
+		}
+		if (ctx.declaration() != null) {
+
+		}
+		if (ctx.class_method_definition() != null) {
+			String method = getCode(ctx.class_method_definition());
+			cDec.addMethod_definition(method);
+		}
+		if (ctx.instance_method_definition() != null) {
+			String method = getCode(ctx.instance_method_definition());
+			cDec.addMethod_definition(method);
+		}
+		if (ctx.property_implementation() != null) {
+			ClassDescription.ClassDeclaration list = getDeclaration(ctx
+					.getChild(0));
+
+			for (String item : list.getSynthesized()) {
+				cDec.addSynthesized(item);
+			}
+			for (String item : list.getDynamic()) {
+				cDec.addDynamic(item);
+			}
+		}
+		setDeclaration(ctx, cDec);
+		setCode(ctx, "");
 	}
 
 	@Override
 	public void exitImplementation_definition_list(
 			ObjCParser.Implementation_definition_listContext ctx) {
-		String definitions = "";
+		ClassDescription.ClassDeclaration cd = new ClassDescription.ClassDeclaration();
 		for (Implementation_definitionContext imp : ctx
 				.implementation_definition()) {
-			definitions = definitions + getCode(imp);
+			ClassDescription.ClassDeclaration item = getDeclaration(imp);
+			cd.addFunction_definitions(item.getFunction_definitions());
+			cd.addMethod_definitions(item.getMethod_definitions());
+			cd.addSynthesized(item.getSynthesized());
+			cd.addDynamic(item.getDynamic());
 		}
-		setCode(ctx, definitions);
+		setDeclaration(ctx, cd);
 	}
 
 	@Override
@@ -293,46 +336,55 @@ public class ParserObjcListener extends ObjCBaseListener {
 		gClassName = name;
 		String myClass = "public class " + name;
 		myClass = myClass + " {\n";
+		ClassDescription.ClassDeclaration cDec = null;
 		if (ctx.implementation_definition_list() != null) {
-			myClass = myClass + getCode(ctx.implementation_definition_list());
-		}
-		ClassDescription.ClassDeclaration cd = choseMapAndDeclaration(gClassName);
-
-		ArrayList<String> setters = codeFormat.generateGetters(cd);
-		if (setters.size() > 0) {
-			myClass += "\n";
-			for (String setter : setters) {
-				myClass += setter;
-			}
-		}
-		ArrayList<String> variables = cd.getVariables();
-		if (variables.size() > 0) {
-			myClass += "\n";
-			for (String variable : variables) {
-				myClass += codeFormat.fixDeclarations(variable);
-			}
-			variables.clear();
+			cDec = getDeclaration(ctx.implementation_definition_list());
 		}
 
-		ArrayList<String> gVariables = ClassDeclaration.getClassDeclaration(
-				classDeclarations, "*").getVariables();
-		if (gVariables.size() > 0) {
-			myClass += "\n";
-			for (String variable : gVariables) {
-				myClass += codeFormat.fixDeclarations(variable);
-			}
-			gVariables.clear();
-		}
-		ArrayList<String> properties = cd.getProperties();
-		if (properties.size() > 0) {
-			myClass += "\n";
-			for (String variable : properties) {
-				myClass += variable;
+		// methods first
+		if (cDec != null) {
+			for (String method : cDec.getMethod_definitions()) {
+				myClass = myClass + method;
 			}
 		}
-
-		myClass = myClass + "}\n";
-		setCode(ctx, myClass);
+		// myClass = myClass + getCode(ctx.implementation_definition_list());
+//		ClassDescription.ClassDeclaration cd = choseMapAndDeclaration(gClassName);
+//		ArrayList<String> setters = codeFormat.generateGetters(
+//				classDescription, gClassName);
+//		if (setters.size() > 0) {
+//			myClass += "\n";
+//			for (String setter : setters) {
+//				myClass += setter;
+//			}
+//		}
+//		ArrayList<String> variables = cd.getVariables();
+//		if (variables.size() > 0) {
+//			myClass += "\n";
+//			for (String variable : variables) {
+//				myClass += codeFormat.fixDeclarations(variable);
+//			}
+//			variables.clear();
+//		}
+//
+//		ArrayList<String> gVariables = ClassDeclaration.getClassDeclaration(
+//				classDeclarations, "*").getVariables();
+//		if (gVariables.size() > 0) {
+//			myClass += "\n";
+//			for (String variable : gVariables) {
+//				myClass += codeFormat.fixDeclarations(variable);
+//			}
+//			gVariables.clear();
+//		}
+//		ArrayList<String> properties = cd.getProperties();
+//		if (properties.size() > 0) {
+//			myClass += "\n";
+//			for (String variable : properties) {
+//				myClass += variable;
+//			}
+//		}
+//
+//		myClass = myClass + "}\n";
+//		setCode(ctx, myClass);
 	}
 
 	@Override
@@ -340,8 +392,18 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String code = ctx.getText();
 		String.format("%s", code);
 		String decs = "";
+		String className = getCode(ctx.class_name());
+		String categoryName = "";
+		gClassName = className;
+		if (ctx.category_name() != null) {
+			categoryName = getCode(ctx.category_name());
+		}
+		ClassDescription.ClassDeclaration cDec = choseMapAndDeclaration(gClassName);
 		if (ctx.interface_declaration_list() != null) {
-			decs = getCode(ctx.interface_declaration_list());
+			ClassDescription.ClassDeclaration list = getDeclaration(ctx.interface_declaration_list());
+			cDec.addMethod_declarations(list.getMethod_declarations());
+			cDec.addProperties(list.getProperties());
+			cDec.addVariables(list.getVariables());
 		}
 		setCode(ctx, decs);
 	}
@@ -352,7 +414,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String message = ctx.getText();
 		String.format("%s", message);
 		ClassDescription.ClassDeclaration iFace = new ClassDescription.ClassDeclaration();
-		
+
 		if (ctx.declaration() != null) {
 			for (DeclarationContext decl : ctx.declaration()) {
 				String code = getCode(decl);
@@ -360,25 +422,30 @@ public class ParserObjcListener extends ObjCBaseListener {
 			}
 		}
 		if (ctx.class_method_declaration() != null) {
-			for (Class_method_declarationContext meth : ctx.class_method_declaration()) {
+			for (Class_method_declarationContext meth : ctx
+					.class_method_declaration()) {
 				iFace.addMethod_declaration(getCode(meth));
 			}
 		}
 		if (ctx.instance_method_declaration() != null) {
-			for (Instance_method_declarationContext meth : ctx.instance_method_declaration()) {
+			for (Instance_method_declarationContext meth : ctx
+					.instance_method_declaration()) {
 				iFace.addMethod_declaration(getCode(meth));
 			}
 		}
 		if (ctx.property_declaration() != null) {
-			for (Property_declarationContext prop : ctx.property_declaration()) {
-				iFace.addProperty(getCode(prop));
+			for (Property_declarationContext decl : ctx.property_declaration()) {
+				ArrayList<String> list = getList(decl);
+				for (String d : list) {
+					iFace.addProperty(d);
+				}
 			}
 		}
-		
+
 		setDeclaration(ctx, iFace);
 	}
 
-		@Override
+	@Override
 	public void exitInstance_method_definition(
 			ObjCParser.Instance_method_definitionContext ctx) {
 		String call = getCode(ctx.method_definition());
@@ -404,8 +471,9 @@ public class ParserObjcListener extends ObjCBaseListener {
 			ObjCParser.Instance_method_declarationContext ctx) {
 		code.put(ctx, getCode(ctx.getChild(0)));
 	}
-	
-	@Override public void exitMethod_declaration(ObjCParser.Method_declarationContext ctx) { 
+
+	@Override
+	public void exitMethod_declaration(ObjCParser.Method_declarationContext ctx) {
 		String method = "";
 		if (ctx.method_type() != null) {
 			method = getCode(ctx.method_type());
@@ -415,22 +483,38 @@ public class ParserObjcListener extends ObjCBaseListener {
 		} else {
 			method += " " + getCode(ctx.method_selector());
 		}
-		
-	}
 
+	}
 
 	@Override
 	public void exitEnum_specifier(ObjCParser.Enum_specifierContext ctx) {
 		String en = "enum ";
 		if (ctx.identifier() != null) {
-			en += ctx.identifier().getText();
+			en += ctx.identifier().getText() + " ";
 			if (ctx.enumerator_list() != null) {
-				en += " {" + getCode(ctx.enumerator_list()) + "}";
+				ArrayList<String> list = getList(ctx.enumerator_list());
+				en += " {";
+				for (int i = 0; i < list.size(); i++) {
+					if (i == 0) {
+						en += "{ ";
+					} else {
+						en += ", ";
+					}
+					en += list.get(i);
+				}
+				en += "}";
 			}
 		} else {
-			en += "{";
 			if (ctx.enumerator_list() != null) {
-				en += getCode(ctx.enumerator_list());
+				ArrayList<String> list = getList(ctx.enumerator_list());
+				for (int i = 0; i < list.size(); i++) {
+					if (i == 0) {
+						en += "{ ";
+					} else {
+						en += ", ";
+					}
+					en += list.get(i);
+				}
 			}
 			en += "}";
 		}
@@ -447,26 +531,22 @@ public class ParserObjcListener extends ObjCBaseListener {
 			cName = "*";
 		}
 		if (parsingHeader) {
-			cd = ClassDeclaration.getClassDeclaration(
-					headerDeclarations, cName);
+			cd = ClassDeclaration
+					.getClassDeclaration(headerDeclarations, cName);
 		} else {
-			cd = ClassDeclaration.getClassDeclaration(
-					classDeclarations, cName);
+			cd = ClassDeclaration.getClassDeclaration(classDeclarations, cName);
 		}
 		return cd;
 	}
 
 	@Override
 	public void exitEnumerator_list(ObjCParser.Enumerator_listContext ctx) {
-		String enumerator = "";
+		ArrayList<String> list = new ArrayList<String>();
 		for (EnumeratorContext en : ctx.enumerator()) {
-			if (enumerator.length() == 0) {
-				enumerator = getCode(en);
-			} else {
-				enumerator += ", " + getCode(en);
-			}
+			String enumerator = getCode(en);
+			list.add(enumerator);
 		}
-
+		setList(ctx, list);
 	}
 
 	@Override
@@ -958,24 +1038,39 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String defStatement = "default: \n" + getCode(ctx.getChild(2)) + ";\n";
 		setCode(ctx, defStatement);
 	}
-	
-	@Override public void exitSetter_call(ObjCParser.Setter_callContext ctx) { 
+
+	@Override
+	public void exitGetter_call(ObjCParser.Getter_callContext ctx) {
 		String message = ctx.getText();
 		String.format("%s", message);
-		String [] parts = getCode(ctx.dotidentifier()).split(":");
-		parts[1] = parts[1].substring(0, 1).toUpperCase() + parts[1].substring(1);
+		String[] parts = getCode(ctx.dotidentifier()).split(":");
+		parts[1] = parts[1].substring(0, 1).toUpperCase()
+				+ parts[1].substring(1);
+		String call = String.format("%s.get%s()", parts[0], parts[1]);
+		setCode(ctx, call);
+	}
+
+	@Override
+	public void exitSetter_call(ObjCParser.Setter_callContext ctx) {
+		String message = ctx.getText();
+		String.format("%s", message);
+		String[] parts = getCode(ctx.dotidentifier()).split(":");
+		parts[1] = parts[1].substring(0, 1).toUpperCase()
+				+ parts[1].substring(1);
 		String value = getCode(ctx.expression());
 		String call = String.format("%s.set%s(%s)", parts[0], parts[1], value);
 		setCode(ctx, call);
 	}
-	@Override public void exitDotidentifier(ObjCParser.DotidentifierContext ctx) { 
+
+	@Override
+	public void exitDotidentifier(ObjCParser.DotidentifierContext ctx) {
 		String message = ctx.getText();
 		String.format("%s", message);
-		String [] parts = ctx.getText().split("\\.");
-		String code = String.format("%s:%s", parts[0], parts[1]);
+		String[] parts = ctx.getText().split("\\.");
+		String code = String.format("%s:%s",
+				codeFormat.identifierFormatter(parts[0]), parts[1]);
 		setCode(ctx, code);
 	}
-
 
 	@Override
 	public void exitMessage_expression(ObjCParser.Message_expressionContext ctx) {
@@ -983,16 +1078,25 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String.format("%s", message);
 		String receiver = getCode(ctx.receiver());
 		String mExpression = "";
-		if (receiver.equals(gClassName)) {
-			// mExpression = "" + getCode(ctx.message_selector());
-			// experiment with this
-			mExpression = getCode(ctx.receiver()) + "."
-					+ getCode(ctx.message_selector());
-		} else {
-			mExpression = getCode(ctx.receiver()) + "."
-					+ getCode(ctx.message_selector());
+		String cName = gClassName;
+		if (cName.length() == 0) {
+			cName = classDescription.getClassFileName();
 		}
-		mExpression = codeFormat.generateConstructorCall(mExpression);
+
+		if (ctx.getter_call() != null) {
+			mExpression = getCode(ctx.getter_call());
+		} else {
+			if (receiver.equals(gClassName)) {
+				// mExpression = "" + getCode(ctx.message_selector());
+				// experiment with this
+				mExpression = getCode(ctx.receiver()) + "."
+						+ getCode(ctx.message_selector());
+			} else {
+				mExpression = getCode(ctx.receiver()) + "."
+						+ getCode(ctx.message_selector());
+			}
+			mExpression = codeFormat.generateConstructorCall(mExpression);
+		}
 		setCode(ctx, mExpression);
 	}
 
@@ -1169,7 +1273,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	@Override
 	public void exitConstTypeQualifier(ObjCParser.ConstTypeQualifierContext ctx) {
-		setCode(ctx, "final");
+		setCode(ctx, "");
 	}
 
 	// not handling 'volatile' or 'protocol qualifier'
@@ -1229,6 +1333,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 			rec = getCode(ctx.expression());
 		} else if (ctx.class_name() != null) {
 			rec = getCode(ctx.class_name());
+		} else if (ctx.getter_call() != null) {
+			rec = getCode(ctx.getter_call());
 		} else { // super
 			rec = "super";
 		}
@@ -1580,9 +1686,11 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 		ClassDeclaration cd;
 		if (parsingHeader) {
-			cd = ClassDescription.ClassDeclaration.getClassDeclaration(headerDeclarations, gClassName);
+			cd = ClassDescription.ClassDeclaration.getClassDeclaration(
+					headerDeclarations, gClassName);
 		} else {
-			cd = ClassDescription.ClassDeclaration.getClassDeclaration(classDeclarations, gClassName);
+			cd = ClassDescription.ClassDeclaration.getClassDeclaration(
+					classDeclarations, gClassName);
 		}
 		if (ctx.instance_variables() != null) {
 			ArrayList<String> variables = cd.getVariables();
@@ -1598,18 +1706,19 @@ public class ParserObjcListener extends ObjCBaseListener {
 				list.add(protocol);
 			}
 		}
+		ClassDescription.ClassDeclaration cDec = choseMapAndDeclaration(gClassName);
 		if (ctx.interface_declaration_list() != null) {
-			ClassDescription.ClassDeclaration iList = getDeclaration(ctx.interface_declaration_list());
-			for (String method : iList.getMethod_declarations()) {
-				cd.addMethod_declaration(method);
-			}
-			for (String property : iList.getProperties()) {
-				cd.addProperty(property);
-			}
+			ClassDescription.ClassDeclaration list = getDeclaration(ctx.interface_declaration_list());
+			cDec.addMethod_declarations(list.getMethod_declarations());
+			cDec.addProperties(list.getProperties());
+			cDec.addVariables(list.getVariables());
 		}
 		setCode(ctx, "");
 	}
-	@Override public void exitProtocol_reference_list(ObjCParser.Protocol_reference_listContext ctx) { 
+
+	@Override
+	public void exitProtocol_reference_list(
+			ObjCParser.Protocol_reference_listContext ctx) {
 		setList(ctx, getList(ctx.getChild(0)));
 	}
 
@@ -1646,7 +1755,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				if (prefix.length() == 0) {
 					prefix = getCode(dp);
 				} else {
-					prefix += " " +  getCode(dp);
+					prefix += " " + getCode(dp);
 				}
 			}
 			ArrayList<String> decls = getList(ctx.instance_variables());
@@ -1655,7 +1764,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				if (prefix.length() == 0) {
 					var = decl;
 				} else {
-					var= " " +  decl;
+					var = " " + decl;
 				}
 				instance.add(var);
 			}
@@ -1674,7 +1783,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				if (prefix.length() == 0) {
 					prefix = getCode(dp);
 				} else {
-					prefix += " " +  getCode(dp);
+					prefix += " " + getCode(dp);
 				}
 			}
 			ArrayList<String> decls = getList(ctx.instance_variables());
@@ -1683,7 +1792,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				if (prefix.length() == 0) {
 					var = decl;
 				} else {
-					var= " " +  decl;
+					var = " " + decl;
 				}
 				instance.add(var);
 			}
@@ -1695,7 +1804,9 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitInstance_sdecl(ObjCParser.Instance_sdeclContext ctx) {
 		String cd = ctx.getText();
 		String.format("%s", cd);
-		String visibility = ctx.visibility_specification().getText().substring(1) + " ";
+		String visibility = ctx.visibility_specification().getText()
+				.substring(1)
+				+ " ";
 		ArrayList<String> decs = new ArrayList<String>();
 		for (Struct_declarationContext dec : ctx.struct_declaration()) {
 			String code = visibility + getCode(dec);

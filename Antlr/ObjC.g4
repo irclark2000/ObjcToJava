@@ -268,12 +268,14 @@ string_constant:  STRING_LITERAL;
             
 message_expression:
 	'[' receiver message_selector ']'
+	| getter_call
 	;
 
 receiver:
 	expression
 	| class_name 
-	| 'super';
+	| 'super'
+	| getter_call;
 
 message_selector:
 	selector
@@ -400,6 +402,7 @@ statement
   | iteration_statement
   | jump_statement
   | while_statement
+  | setter_call
   ;
 
 semi_statement 
@@ -446,6 +449,15 @@ jump_statement
   | 'return' expression? ';' 
   ;
 
+setter_call :
+    dotidentifier '=' expression
+;
+
+getter_call :
+    dotidentifier
+;
+
+dotidentifier : DOTIDENTIFIER;
 expression : assignment_expression (',' assignment_expression)* ;
 
 assignment_expression : conditional_expression 
@@ -542,6 +554,10 @@ argument_expression_list
 identifier : IDENTIFIER;
 
 constant : DECIMAL_LITERAL | HEX_LITERAL | OCTAL_LITERAL | CHARACTER_LITERAL | FLOATING_POINT_LITERAL;
+
+DOTIDENTIFIER :
+ IDENTIFIER '.' IDENTIFIER
+;
 
 IDENTIFIER
 	:	LETTER (LETTER|'0'..'9')*
