@@ -163,12 +163,12 @@ implementation_definition_list
     : ( implementation_definition)+
     ;
 
-implementation_definition : function_definition
+implementation_definition : 
+      function_definition
       | declaration 
       | class_method_definition 
       | instance_method_definition
       | property_implementation
-      ;
  
 class_method_definition:
 	('+' method_definition)
@@ -268,7 +268,6 @@ string_constant:  STRING_LITERAL;
             
 message_expression:
 	'[' receiver message_selector ']'
-	| getter_call
 	;
 
 receiver:

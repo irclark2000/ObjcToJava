@@ -15,9 +15,8 @@ import com.gmail.irclark2000.objc.parser.ObjCLexer;
 import com.gmail.irclark2000.objc.parser.ObjCParser;
 
 /**
- * @author Dad
- * Driver class for running the parser from the command line
- *
+ * @author Dad Driver class for running the parser from the command line
+ * 
  */
 
 public class Parse {
@@ -32,14 +31,16 @@ public class Parse {
 			+ "\n-header headerfile use fileName as headerFile when parsing input file"
 			+ "\n-autoheader        derive header file name from input file name "
 			+ "\n-allheader dir     parse all headerfile in directry dir"
+			+ "\n-all dir           parse all headers and implementation files in directry dir"
 			+ "\n-o filename        write output to filename default is stdout"
 			+ "";
 
 	private static final String MANGLED_MESSAGE = "Command line error.\nType %s -help for usage information";
 	private static boolean useHeaderFile = false;
 	private static boolean useAutoHeaderFile = false;
+	private static boolean doAll = false;
 	private static String outputFileName = "";
-	private static String inputFileName = "";
+	private static ArrayList<String> inputFileNames = new ArrayList<String>();
 	private static String baseName = "";
 	private static ArrayList<String> headerFileNames = new ArrayList<String>();
 
@@ -74,14 +75,29 @@ public class Parse {
 					i++;
 				}
 				continue;
+			} else if (arg.equals("-all")) {
+				doAll = true;
+				File f = new File(args[i + 1]);
+				File[] files = f.listFiles();
+				for (File file : files) {
+					if (file.isFile()) {
+						if (file.getAbsolutePath().endsWith(".h")) {
+						  headerFileNames.add(file.getAbsolutePath());
+						} else if (file.getAbsolutePath().endsWith(".m")) {
+						   inputFileNames.add(file.getAbsolutePath());
+						}
+					}
+				}
+				i++;
 			} else if (arg.equals("-allheader")) {
 				if (i >= args.length - 1 || args[i + 1].startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 				} else {
-					File f = new File(args[i+1]);
+					File f = new File(args[i + 1]);
 					File[] files = f.listFiles();
-					for ( File file : files) {
-						if (file.isFile() && file.getAbsolutePath().endsWith(".h")) {
+					for (File file : files) {
+						if (file.isFile()
+								&& file.getAbsolutePath().endsWith(".h")) {
 							headerFileNames.add(file.getAbsolutePath());
 						}
 					}
@@ -95,8 +111,8 @@ public class Parse {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 					;
 				} else {
-					inputFileName = arg;
-					baseName = getBaseName (inputFileName);
+					inputFileNames.add(arg);
+					baseName = getBaseName(arg);
 				}
 			}
 		}
@@ -106,7 +122,8 @@ public class Parse {
 			useAutoHeaderFile = false;
 		} else {
 			if (useAutoHeaderFile) {
-				headerFileNames.add(generateHeaderFileName(inputFileName));
+				headerFileNames.add(generateHeaderFileName(inputFileNames
+						.get(0)));
 			}
 		}
 		ClassDescription cd = new ClassDescription();
@@ -131,28 +148,31 @@ public class Parse {
 						.translation_unit();
 				// walk the tree and activate so we can listen
 				ParseTreeWalker walker = new ParseTreeWalker();
-				walker.walk(new ParserObjcListener(cd, true), tree);
+				walker.walk(new ParserObjcListener(cd, "", true), tree);
 				instream.close();
 			}
 		}
 
 		// Set<String> keys = cd.getHeaders().keySet();
-		if (inputFileName.length() > 0) {
-			BufferedInputStream instream = null;
-			instream = new BufferedInputStream(new FileInputStream(
-					inputFileName));
-			ANTLRInputStream antlrStream = null;
-			antlrStream = new ANTLRInputStream(instream);
-			// lexing
-			ObjCParser.Translation_unitContext tree = new ObjCParser(
-					new CommonTokenStream(new ObjCLexer(antlrStream)))
-					.translation_unit();
+		for (String inputFileName : inputFileNames) {
+			if (inputFileName.length() > 0) {
+				BufferedInputStream instream = null;
+				instream = new BufferedInputStream(new FileInputStream(
+						inputFileName));
+				ANTLRInputStream antlrStream = null;
+				antlrStream = new ANTLRInputStream(instream);
+				// lexing
+				ObjCParser.Translation_unitContext tree = new ObjCParser(
+						new CommonTokenStream(new ObjCLexer(antlrStream)))
+						.translation_unit();
 
-			// walk the tree and activate so we can listen
-			ParseTreeWalker walker = new ParseTreeWalker();
-			cd = new ClassDescription(headerDeclarations);
-			cd.setClassFileName(baseName);
-			walker.walk(new ParserObjcListener(cd, false), tree);
+				// walk the tree and activate so we can listen
+				ParseTreeWalker walker = new ParseTreeWalker();
+				cd = new ClassDescription(headerDeclarations);
+				cd.setClassFileName(baseName);
+				walker.walk(new ParserObjcListener(cd, baseName + ".java",
+						false), tree);
+			}
 		}
 	}
 
@@ -168,7 +188,7 @@ public class Parse {
 		return hFileName;
 	}
 
-	public static String getBaseName (String fName) {
+	public static String getBaseName(String fName) {
 		String bName = fName;
 		int index = fName.lastIndexOf('.');
 		if (index >= 0) {
@@ -176,6 +196,7 @@ public class Parse {
 		}
 		return bName;
 	}
+
 	private static void printErrorAndExit(int errorCode) {
 		switch (errorCode) {
 		case USAGE_METHOD_CODE:

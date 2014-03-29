@@ -71,7 +71,7 @@ public class CodeFormatter {
 	
 		   ArrayList<String> properties = cDec.getProperties();
 		   for (String property : properties) {
-			   String [] parts = property.split("[ ]*");
+			   String [] parts = property.split("[ ]+");
 			   if (parts[parts.length-1].equals(vName)) {
 				   type = parts[0];
 				   for (int j = 1; j < parts.length-1; j++) {

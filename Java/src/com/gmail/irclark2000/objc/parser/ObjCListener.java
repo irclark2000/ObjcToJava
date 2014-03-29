@@ -1,6 +1,7 @@
 // Generated from ObjC.g4 by ANTLR 4.0
 package com.gmail.irclark2000.objc.parser;
 import org.antlr.v4.runtime.tree.*;
+import org.antlr.v4.runtime.Token;
 
 public interface ObjCListener extends ParseTreeListener {
 	void enterSynchronized_statement(ObjCParser.Synchronized_statementContext ctx);

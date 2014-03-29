@@ -1,5 +1,9 @@
 package com.gmail.irclark2000.objc;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -41,13 +45,12 @@ public class ParserObjcListener extends ObjCBaseListener {
 	private ClassDescription classDescription;
 	private Map<String, ClassDescription.ClassDeclaration> classDeclarations;
 	private Map<String, ClassDescription.ClassDeclaration> headerDeclarations;
-	// private ClassDescription.ClassDeclaration activeCD = null;
-	// private ClassDescription.ClassDeclaration activeHeaderCD = null;
 	private String gClassName = "";
 	private boolean parsingHeader = false;
 	private String gSuperClassName = "";
 	private boolean skipMethods = false;
 	private CodeFormatter codeFormat = new CodeFormatter();
+	private String outputFileName;
 	public static final String CLASSNAME_MARKER = "__CLASS0x--x0NAME__";
 
 	String getCode(ParseTree ctx) {
@@ -112,7 +115,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			for (String method : cDec.getMethod_definitions()) {
 				String code = method.replaceAll(CLASSNAME_MARKER, gClassName);
 				if (code.startsWith("public void dealloc")) {
-				    continue;
+					continue;
 				}
 				code = codeFormat.codeIndenter(code);
 				myClass = myClass + code;
@@ -121,7 +124,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 		// now getters and setters
 		if (cDec != null) {
-			ArrayList<String> setters = codeFormat.generateGetters(classDescription, cDec, gClassName);
+			ArrayList<String> setters = codeFormat.generateGetters(
+					classDescription, cDec, gClassName);
 			if (setters.size() > 0) {
 				myClass += "\n";
 				for (String setter : setters) {
@@ -129,34 +133,44 @@ public class ParserObjcListener extends ObjCBaseListener {
 				}
 			}
 		}
-		
-//		ArrayList<String> variables = cd.getVariables();
-//		if (variables.size() > 0) {
-//			myClass += "\n";
-//			for (String variable : variables) {
-//				myClass += codeFormat.fixDeclarations(variable);
-//			}
-//			variables.clear();
-//		}
-
-		ArrayList<String> gVariables = ClassDeclaration.getClassDeclaration(
-				classDeclarations, "*").getVariables();
-		if (gVariables.size() > 0) {
-			myClass += "\n";
-			for (String variable : gVariables) {
-				myClass += codeFormat.fixDeclarations(variable);
-			}
-			gVariables.clear();
+		// now print out variables from property list
+		// from header first
+		ArrayList<String> vars = headerDeclarations.get(gClassName)
+				.getProperties();
+		for (String variable : vars) {
+			myClass += "\n" + variable + ";";
 		}
-//		ArrayList<String> properties = cd.getProperties();
-//		if (properties.size() > 0) {
-//			myClass += "\n";
-//			for (String variable : properties) {
-//				myClass += variable;
-//			}
-//		}
+		// then from current set
+		if (cDec != null) {
+			vars = cDec.getProperties();
+			for (String variable : vars) {
+				myClass += "\n" + variable + ";";
+			}
+		}
 
-		myClass = myClass + "}\n";
+		// now the external variables
+		ClassDescription.ClassDeclaration vDec = classDeclarations.get("*");
+		if (vDec != null) {
+			ArrayList<String> variables = classDeclarations.get("*")
+					.getVariables();
+			if (variables.size() > 0) {
+				myClass += "\n";
+				for (String variable : variables) {
+					myClass += "\n" + codeFormat.fixDeclarations(variable)
+							+ ";";
+				}
+			}
+		}
+		// ArrayList<String> properties = cd.getProperties();
+		// if (properties.size() > 0) {
+		// myClass += "\n";
+		// for (String variable : properties) {
+		// myClass += variable;
+		// }
+		// }
+
+		myClass = myClass + "\n}\n";
+		writeOutput(outputFileName, myClass);
 		setCode(ctx, myClass);
 	}
 
@@ -348,43 +362,44 @@ public class ParserObjcListener extends ObjCBaseListener {
 			}
 		}
 		// myClass = myClass + getCode(ctx.implementation_definition_list());
-//		ClassDescription.ClassDeclaration cd = choseMapAndDeclaration(gClassName);
-//		ArrayList<String> setters = codeFormat.generateGetters(
-//				classDescription, gClassName);
-//		if (setters.size() > 0) {
-//			myClass += "\n";
-//			for (String setter : setters) {
-//				myClass += setter;
-//			}
-//		}
-//		ArrayList<String> variables = cd.getVariables();
-//		if (variables.size() > 0) {
-//			myClass += "\n";
-//			for (String variable : variables) {
-//				myClass += codeFormat.fixDeclarations(variable);
-//			}
-//			variables.clear();
-//		}
-//
-//		ArrayList<String> gVariables = ClassDeclaration.getClassDeclaration(
-//				classDeclarations, "*").getVariables();
-//		if (gVariables.size() > 0) {
-//			myClass += "\n";
-//			for (String variable : gVariables) {
-//				myClass += codeFormat.fixDeclarations(variable);
-//			}
-//			gVariables.clear();
-//		}
-//		ArrayList<String> properties = cd.getProperties();
-//		if (properties.size() > 0) {
-//			myClass += "\n";
-//			for (String variable : properties) {
-//				myClass += variable;
-//			}
-//		}
-//
-//		myClass = myClass + "}\n";
-//		setCode(ctx, myClass);
+		// ClassDescription.ClassDeclaration cd =
+		// choseMapAndDeclaration(gClassName);
+		// ArrayList<String> setters = codeFormat.generateGetters(
+		// classDescription, gClassName);
+		// if (setters.size() > 0) {
+		// myClass += "\n";
+		// for (String setter : setters) {
+		// myClass += setter;
+		// }
+		// }
+		// ArrayList<String> variables = cd.getVariables();
+		// if (variables.size() > 0) {
+		// myClass += "\n";
+		// for (String variable : variables) {
+		// myClass += codeFormat.fixDeclarations(variable);
+		// }
+		// variables.clear();
+		// }
+		//
+		// ArrayList<String> gVariables = ClassDeclaration.getClassDeclaration(
+		// classDeclarations, "*").getVariables();
+		// if (gVariables.size() > 0) {
+		// myClass += "\n";
+		// for (String variable : gVariables) {
+		// myClass += codeFormat.fixDeclarations(variable);
+		// }
+		// gVariables.clear();
+		// }
+		// ArrayList<String> properties = cd.getProperties();
+		// if (properties.size() > 0) {
+		// myClass += "\n";
+		// for (String variable : properties) {
+		// myClass += variable;
+		// }
+		// }
+		//
+		// myClass = myClass + "}\n";
+		// setCode(ctx, myClass);
 	}
 
 	@Override
@@ -400,7 +415,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 		ClassDescription.ClassDeclaration cDec = choseMapAndDeclaration(gClassName);
 		if (ctx.interface_declaration_list() != null) {
-			ClassDescription.ClassDeclaration list = getDeclaration(ctx.interface_declaration_list());
+			ClassDescription.ClassDeclaration list = getDeclaration(ctx
+					.interface_declaration_list());
 			cDec.addMethod_declarations(list.getMethod_declarations());
 			cDec.addProperties(list.getProperties());
 			cDec.addVariables(list.getVariables());
@@ -1708,7 +1724,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 		ClassDescription.ClassDeclaration cDec = choseMapAndDeclaration(gClassName);
 		if (ctx.interface_declaration_list() != null) {
-			ClassDescription.ClassDeclaration list = getDeclaration(ctx.interface_declaration_list());
+			ClassDescription.ClassDeclaration list = getDeclaration(ctx
+					.interface_declaration_list());
 			cDec.addMethod_declarations(list.getMethod_declarations());
 			cDec.addProperties(list.getProperties());
 			cDec.addVariables(list.getVariables());
@@ -1840,11 +1857,24 @@ public class ParserObjcListener extends ObjCBaseListener {
 		this.classDeclarations = classDescription.getmFiles();
 	}
 
-	ParserObjcListener(ClassDescription classDescription, boolean parsingHeader) {
+	ParserObjcListener(ClassDescription classDescription,
+			String outputFileName, boolean parsingHeader) {
 		super();
 		this.classDescription = classDescription;
 		this.parsingHeader = parsingHeader;
+		this.outputFileName = outputFileName;
 		this.headerDeclarations = classDescription.getHeaders();
 		this.classDeclarations = classDescription.getmFiles();
+	}
+
+	private void writeOutput(String fileName, String code) {
+		try {
+			File file = new File(fileName);
+			BufferedWriter output = new BufferedWriter(new FileWriter(file));
+			output.write(code);
+			output.close();
+		} catch (IOException e) {
+			System.exit(10);
+		}
 	}
 }
