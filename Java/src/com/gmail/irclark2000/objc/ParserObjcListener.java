@@ -46,11 +46,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 	private Map<String, ClassDescription.ClassDeclaration> classDeclarations;
 	private Map<String, ClassDescription.ClassDeclaration> headerDeclarations;
 	private String gClassName = "";
-	private boolean parsingHeader = false;
 	private String gSuperClassName = "";
 	private boolean skipMethods = false;
 	private CodeFormatter codeFormat = new CodeFormatter();
-	private String outputFileName;
+	private ParseOptions options;
 	public static final String CLASSNAME_MARKER = "__CLASS0x--x0NAME__";
 
 	String getCode(ParseTree ctx) {
@@ -150,7 +149,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 		// now the external variables
 		ClassDescription.ClassDeclaration vDec = classDeclarations.get("*");
-		if (vDec != null) {
+	if (vDec != null) {
 			ArrayList<String> variables = classDeclarations.get("*")
 					.getVariables();
 			if (variables.size() > 0) {
@@ -170,7 +169,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		// }
 
 		myClass = myClass + "\n}\n";
-		writeOutput(outputFileName, myClass);
+		writeOutput(options.getOutputFileName(), myClass);
 		setCode(ctx, myClass);
 	}
 
@@ -546,7 +545,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		if (cName.length() == 0) {
 			cName = "*";
 		}
-		if (parsingHeader) {
+		if (options.isParsingheader()) {
 			cd = ClassDeclaration
 					.getClassDeclaration(headerDeclarations, cName);
 		} else {
@@ -1038,7 +1037,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	@Override
 	public void exitForcomplete2(ObjCParser.Forcomplete2Context ctx) {
-		String fComplete = ": " + getCode(ctx.expression());
+		String fComplete = " : " + getCode(ctx.expression());
 		setCode(ctx, fComplete);
 	}
 
@@ -1096,7 +1095,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String mExpression = "";
 		String cName = gClassName;
 		if (cName.length() == 0) {
-			cName = classDescription.getClassFileName();
+			cName = classDescription.getTempClassName();
 		}
 
 		if (ctx.getter_call() != null) {
@@ -1111,7 +1110,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				mExpression = getCode(ctx.receiver()) + "."
 						+ getCode(ctx.message_selector());
 			}
-			mExpression = codeFormat.generateConstructorCall(mExpression);
+			mExpression = codeFormat.generateConstructorCall(mExpression, options);
 		}
 		setCode(ctx, mExpression);
 	}
@@ -1701,7 +1700,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			gSuperClassName = getCode(ctx.superclass_name());
 		}
 		ClassDeclaration cd;
-		if (parsingHeader) {
+		if (options.isParsingheader()) {
 			cd = ClassDescription.ClassDeclaration.getClassDeclaration(
 					headerDeclarations, gClassName);
 		} else {
@@ -1852,17 +1851,15 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	ParserObjcListener() {
 		this.classDescription = new ClassDescription();
-		this.parsingHeader = false;
 		this.headerDeclarations = classDescription.getHeaders();
 		this.classDeclarations = classDescription.getmFiles();
 	}
 
 	ParserObjcListener(ClassDescription classDescription,
-			String outputFileName, boolean parsingHeader) {
+			ParseOptions options) {
 		super();
 		this.classDescription = classDescription;
-		this.parsingHeader = parsingHeader;
-		this.outputFileName = outputFileName;
+		this.options = options;
 		this.headerDeclarations = classDescription.getHeaders();
 		this.classDeclarations = classDescription.getmFiles();
 	}

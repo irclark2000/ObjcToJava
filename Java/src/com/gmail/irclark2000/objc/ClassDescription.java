@@ -7,7 +7,7 @@ import java.util.Map;
 public class ClassDescription {
 	private Map<String, ClassDeclaration> headers;
 	private Map<String, ClassDeclaration> mFiles;
-	private String classFileName;
+	private String tempClassName;
 
 	public Map<String, ClassDeclaration> getHeaders() {
 		return headers;
@@ -25,12 +25,12 @@ public class ClassDescription {
 		this.mFiles = mFiles;
 	}
 
-	public String getClassFileName() {
-		return classFileName;
+	public String getTempClassName() {
+		return tempClassName;
 	}
 
-	public void setClassFileName(String classFileName) {
-		this.classFileName = classFileName;
+	public void setTempClassName(String classFileName) {
+		this.tempClassName = classFileName;
 	}
 
 	ClassDescription(Map<String, ClassDeclaration> headerFile) {
