@@ -4,31 +4,54 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Dad
+ * Maintains a list of the declarations obtained while parsing
+ * 
+ */
 public class ClassDescription {
 	private Map<String, ClassDeclaration> headers;
 	private Map<String, ClassDeclaration> mFiles;
 	private String tempClassName;
 
+	/**
+	 * @return headers
+	 */
 	public Map<String, ClassDeclaration> getHeaders() {
 		return headers;
 	}
 
+	/**
+	 * @param headers
+	 */
 	public void setHeaders(Map<String, ClassDeclaration> headers) {
 		this.headers = headers;
 	}
 
+	/**
+	 * @return descriptions for dot-M files
+	 */
 	public Map<String, ClassDeclaration> getmFiles() {
 		return mFiles;
 	}
 
+	/**
+	 * @param mFiles
+	 */
 	public void setmFiles(Map<String, ClassDeclaration> mFiles) {
 		this.mFiles = mFiles;
 	}
 
+	/**
+	 * @return temp class name based on file name
+	 */
 	public String getTempClassName() {
 		return tempClassName;
 	}
 
+	/**
+	 * @param classFileName
+	 */
 	public void setTempClassName(String classFileName) {
 		this.tempClassName = classFileName;
 	}
@@ -43,6 +66,12 @@ public class ClassDescription {
 		this.mFiles = new HashMap<String, ClassDeclaration>();
 	}
 
+	/**
+	 * @author Dad
+	 * Maintains a list of the methods variables
+	 * properties find while parsing and converting to Java
+	 *
+	 */
 	public static class ClassDeclaration {
 		public ArrayList<String> getProtocols() {
 			return protocols;
@@ -52,14 +81,23 @@ public class ClassDescription {
 			protocols.clear();
 		}
 
+		/**
+		 * @param protocol
+		 */
 		public void addProtocol(String protocol) {
 			protocols.add(protocol);
 		}
 
+		/**
+		 * @return variables
+		 */
 		public ArrayList<String> getVariables() {
 			return variables;
 		}
 
+		/**
+		 * clear variables
+		 */
 		public void clearVariables() {
 			variables.clear();
 		}

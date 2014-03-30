@@ -4,17 +4,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author Isaac Clark Reformats code as needed after parsing
+ * 
+ */
 public class CodeFormatter {
-	public static final String REVERSE_ARGS_MARKER = "ReverseArgs";
+	private static final String REVERSE_ARGS_MARKER = "ReverseArgs";
 	private static final String SETTER = "\n%s get%s() {\nreturn this.%s; \n}\n";
 	private static final String GETTER = "\nvoid set%s(%s %s) {\nthis.%s = %s;\n}\n";
-	public ArrayList<String> constructorSignalsList;
+	private ArrayList<String> constructorSignalsList;
 
 	CodeFormatter() {
 		constructorSignalsList = new ArrayList<String>();
 		constructorSignalsList.add("init");
 	}
 
+	/**
+	 * @param id
+	 * @return id after reformatting to Java conventions
+	 */
 	public String identifierFormatter(String id) {
 		if (id.equals("NSString") || id.equals("NSMutableString")) {
 			id = "String";
@@ -37,6 +45,14 @@ public class CodeFormatter {
 		return id;
 	}
 
+	/**
+	 * @param cd
+	 *            class description holder
+	 * @param cDec
+	 *            class description for getters
+	 * @param className
+	 * @return getters and setters for properties
+	 */
 	public ArrayList<String> generateGetters(ClassDescription cd,
 			ClassDescription.ClassDeclaration cDec, String className) {
 		ArrayList<String> code = new ArrayList<String>();
@@ -91,16 +107,31 @@ public class CodeFormatter {
 		return type;
 	}
 
-	public String generateConstructor(String code, String className) {
+	/**
+	 * @param code the construction declaration
+	 * @param className
+	 * @param options parsing options
+	 * @return converts method definition into a constructor definition FIXME
+	 *         does not use signatures yet
+	 */
+	public String generateConstructor(String code, String className,
+			ParseOptions options) {
 		String proto = String.format("%s", code);
 		String[] parts = proto.split(" ");
-		if (parts[1].startsWith("init")) {
-			String cName = parts[0];
-			if (cName.equals("Object")) {
-				cName = className;
+		for (String signature : options.getConstructorSignatures()) {
+			if (parts[1].startsWith(signature)) {
+				String cName = parts[0];
+				if (cName.equals("Object")) {
+					cName = className;
+				}
+				if(parts[1].equals("init")) {
+					proto = cName + "()";
+				} else {
+					int index = signature.length();
+					while(proto.charAt(index) != ')') index++;
+					proto = cName + proto.substring(index);
+				}
 			}
-			// while (proto.charAt(start) != '(') start++;
-			proto = className;
 		}
 		return proto;
 	}
@@ -124,9 +155,16 @@ public class CodeFormatter {
 		return proto;
 	}
 
+	/**
+	 * @param call
+	 *            the method call to convert
+	 * @param options
+	 *            for converting
+	 * @return reformatted method call
+	 */
 	public String reformatMethodCall(String call, ParseOptions options) {
-		//String proto = String.format("%s", call);
-        String proto = reformatConstructorCall(call, options);
+		// String proto = String.format("%s", call);
+		String proto = reformatConstructorCall(call, options);
 
 		if (proto.contains(".autorelease()")) {
 			proto = proto.replace(".autorelease()", "");

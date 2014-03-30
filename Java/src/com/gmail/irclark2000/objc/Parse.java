@@ -17,7 +17,8 @@ import com.gmail.irclark2000.objc.parser.ObjCLexer;
 import com.gmail.irclark2000.objc.parser.ObjCParser;
 
 /**
- * @author Dad Driver class for running the parser from the command line
+ * @author Isaac Clark 
+ * Driver class for running the parser from the command line
  * 
  */
 
@@ -145,6 +146,10 @@ public class Parse {
 		return hFileName;
 	}
 
+	/**
+	 * @param fName filename
+	 * @return returns the base for the given file name
+	 */
 	public static String getBaseName(String fName) {
 		String bName = fName;
 		int index = fName.lastIndexOf('.');

@@ -37,6 +37,12 @@ import com.gmail.irclark2000.objc.parser.ObjCParser.Struct_declarationContext;
 import com.gmail.irclark2000.objc.parser.ObjCParser.Struct_declaratorContext;
 import com.gmail.irclark2000.objc.parser.ObjCParser.Type_qualifierContext;
 
+/**
+ * @author Isaac Clark
+ * Listener Implemented Paring and Conversion
+ * of Objective C to Java
+ *
+ */
 public class ParserObjcListener extends ObjCBaseListener {
 	ParseTreeProperty<String> code = new ParseTreeProperty<String>();
 	ParseTreeProperty<ArrayList<String>> list = new ParseTreeProperty<ArrayList<String>>();
@@ -50,7 +56,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	private boolean skipMethods = false;
 	private CodeFormatter codeFormat = new CodeFormatter();
 	private ParseOptions options;
-	public static final String CLASSNAME_MARKER = "__CLASS0x--x0NAME__";
+	private static final String CLASSNAME_MARKER = "__CLASS0x--x0NAME__";
 
 	String getCode(ParseTree ctx) {
 		return code.get(ctx);
@@ -76,11 +82,13 @@ public class ParserObjcListener extends ObjCBaseListener {
 		return declarations.get(ctx);
 	}
 
-	public boolean isSkipMethods() {
+	@SuppressWarnings("unused")
+	private boolean isSkipMethods() {
 		return skipMethods;
 	}
 
-	public void setSkipMethods(boolean skipMethods) {
+	@SuppressWarnings("unused")
+	private void setSkipMethods(boolean skipMethods) {
 		this.skipMethods = skipMethods;
 	}
 
@@ -407,6 +415,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String.format("%s", code);
 		String decs = "";
 		String className = getCode(ctx.class_name());
+		@SuppressWarnings("unused")
 		String categoryName = "";
 		gClassName = className;
 		if (ctx.category_name() != null) {
@@ -539,7 +548,11 @@ public class ParserObjcListener extends ObjCBaseListener {
 	}
 
 	// used for definitions which can appear in either .h or .m files
-	public ClassDeclaration choseMapAndDeclaration(String className) {
+	/**
+	 * @param className
+	 * @returns a class declaration holder for the given classname
+	 */
+	private ClassDeclaration choseMapAndDeclaration(String className) {
 		ClassDeclaration cd;
 		String cName = className;
 		if (cName.length() == 0) {
@@ -585,7 +598,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		methDef += selector;
 		String cName = (gClassName.length() == 0) ? CLASSNAME_MARKER
 				: gClassName;
-		methDef = codeFormat.generateConstructor(methDef, cName);
+		methDef = codeFormat.generateConstructor(methDef, cName, options);
 		if (selector.startsWith("init")) {
 		}
 		if (ctx.init_declarator_list() != null) {
@@ -1110,7 +1123,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				mExpression = getCode(ctx.receiver()) + "."
 						+ getCode(ctx.message_selector());
 			}
-			mExpression = codeFormat.generateConstructorCall(mExpression, options);
+			mExpression = codeFormat.reformatMethodCall(mExpression, options);
 		}
 		setCode(ctx, mExpression);
 	}
