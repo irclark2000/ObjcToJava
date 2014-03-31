@@ -99,6 +99,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		for (External_declarationContext ext : ctx.external_declaration()) {
 			program = program + getCode(ext);
 		}
+		
+		//FIXME these should not be null
 		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration.getClassDeclaration(classDeclarations, gClassName + GLOBAL_DECLARATION_MARKER);
 		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration.getClassDeclaration(headerDeclarations, gClassName + GLOBAL_DECLARATION_MARKER + "header");
 
@@ -384,45 +386,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 				myClass = myClass + method;
 			}
 		}
-		// myClass = myClass + getCode(ctx.implementation_definition_list());
-		// ClassDescription.ClassDeclaration cd =
-		// choseMapAndDeclaration(gClassName);
-		// ArrayList<String> setters = codeFormat.generateGetters(
-		// classDescription, gClassName);
-		// if (setters.size() > 0) {
-		// myClass += "\n";
-		// for (String setter : setters) {
-		// myClass += setter;
-		// }
-		// }
-		// ArrayList<String> variables = cd.getVariables();
-		// if (variables.size() > 0) {
-		// myClass += "\n";
-		// for (String variable : variables) {
-		// myClass += codeFormat.fixDeclarations(variable);
-		// }
-		// variables.clear();
-		// }
-		//
-		// ArrayList<String> gVariables = ClassDeclaration.getClassDeclaration(
-		// classDeclarations, "*").getVariables();
-		// if (gVariables.size() > 0) {
-		// myClass += "\n";
-		// for (String variable : gVariables) {
-		// myClass += codeFormat.fixDeclarations(variable);
-		// }
-		// gVariables.clear();
-		// }
-		// ArrayList<String> properties = cd.getProperties();
-		// if (properties.size() > 0) {
-		// myClass += "\n";
-		// for (String variable : properties) {
-		// myClass += variable;
-		// }
-		// }
-		//
-		// myClass = myClass + "}\n";
-		// setCode(ctx, myClass);
+		//FIXME: add stuff after class_implementation is debugged
+		// move final code output to exitExternal_Declaration
 	}
 
 	@Override
@@ -1773,7 +1738,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitProtocol_reference_list(
 			ObjCParser.Protocol_reference_listContext ctx) {
-		setList(ctx, getList(ctx.getChild(0)));
+		ArrayList<String> list = getList(ctx.getChild(1));
+		setList(ctx, list);
 	}
 
 	@Override

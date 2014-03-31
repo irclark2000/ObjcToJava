@@ -47,6 +47,7 @@ public class Parse {
 	private static boolean useAutoHeaderFile = false;
 	private static boolean doAll = false;
 	private static String outputFileName = "";
+	private static String directoryName = "";
 	private static ArrayList<String> inputFileNames = new ArrayList<String>();
 	private static String baseName = "";
 	private static ArrayList<String> headerFileNames = new ArrayList<String>();
@@ -80,7 +81,6 @@ public class Parse {
 			options.getConstructorSignatures().add(con);
 		}
 		ClassDescription cd = new ClassDescription();
-		cd.setTempClassName(baseName);
 		Map<String, ClassDescription.ClassDeclaration> headerDeclarations = cd
 				.getHeaders();
 		boolean first = true;
@@ -96,6 +96,8 @@ public class Parse {
 			}
 			options.setParsingheader(true);
 			for (String headerFileName : headerFileNames) {
+				baseName = baseNameFromPath(headerFileName);
+				cd.setTempClassName(baseName);
 				BufferedInputStream instream = null;
 				instream = new BufferedInputStream(new FileInputStream(
 						headerFileName));
@@ -114,7 +116,7 @@ public class Parse {
 		// Set<String> keys = cd.getHeaders().keySet();
 		options.setParsingheader(false);
 		for (String inputFileName : inputFileNames) {
-			baseName = getBaseName(inputFileName);
+			baseName = baseNameFromPath(inputFileName);
 			if (inputFileName.length() > 0) {
 				BufferedInputStream instream = null;
 				instream = new BufferedInputStream(new FileInputStream(
@@ -132,7 +134,7 @@ public class Parse {
 				options.setClassName(baseName);
 				cd.setTempClassName(baseName);
 				options.setParsingheader(false);
-				options.setOutputFileName(baseName + ".java");
+				options.setOutputFileName(combinePathWithFileName(directoryName, baseName + ".java"));
 				walker.walk(new ParserObjcListener(cd, options), tree);
 			}
 		}
@@ -211,6 +213,7 @@ public class Parse {
 				continue;
 			} else if (arg.equals("-all")) {
 				doAll = true;
+				directoryName = list.get(i+1);
 				File f = new File(list.get(i + 1));
 				File[] files = f.listFiles();
 				for (File file : files) {
@@ -236,6 +239,7 @@ public class Parse {
 				if (i >= list.size() - 1 || list.get(i+1).startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 				} else {
+					directoryName = list.get(i+1);
 					File f = new File(list.get(i+1));
 					File[] files = f.listFiles();
 					for (File file : files) {
@@ -254,7 +258,7 @@ public class Parse {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 					;
 				} else {
-					inputFileNames.add(arg);
+					inputFileNames.add(combinePathWithFileName(directoryName, arg));
 					baseName = getBaseName(arg);
 				}
 			}
@@ -269,5 +273,20 @@ public class Parse {
 						.get(0)));
 			}
 		}
+	}
+	private static String baseNameFromPath(String fName) {
+		File f = new File(fName);
+		String bName = f.getName();
+		return getBaseName(bName);
+	}
+
+	private static String combinePathWithFileName(String directory,
+			String fName) {
+//		directory.replace("/", File.separator);
+//		directory.replace("\\", File.separator);
+		if (directory.charAt(directory.length() -1) != '/') {
+			directory += "/";
+		}
+		return directory + fName;
 	}
 }
