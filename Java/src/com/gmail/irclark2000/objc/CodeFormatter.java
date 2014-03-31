@@ -30,7 +30,7 @@ public class CodeFormatter {
 			id = "ArrayList";
 		} else if (id.equals("NSDictionary")
 				|| id.equals("NSMutableDictionary")) {
-			id = "Map";
+			id = "Map<String, Object>";
 		} else if (id.equals("YES") || id.equals("TRUE")) {
 			id = "true";
 		} else if (id.equals("NO") || id.equals("FALSE")) {
@@ -39,6 +39,8 @@ public class CodeFormatter {
 			id = "Object";
 		} else if (id.equals("self")) {
 			id = "this";
+		} else if (id.equals("nil")) {
+			id = "null";
 		} else if (id.equals("bool")) {
 			id = "boolean";
 		}
@@ -142,7 +144,17 @@ public class CodeFormatter {
 			if (signature.equals("init")) {
 				signature = "alloc().init";
 			}
-			if (proto.contains(signature)) {
+			if (proto.contains("ArrayList.alloc().initWithObjects(")) {
+				String aCall = ".alloc().initWithObjects(";
+				int start = proto.indexOf(aCall) + aCall.length();
+				while (proto.charAt(start) != '(')
+					start++;
+				proto = "new ArrayList(Arrays.AsList" 
+						+ proto.substring(start, call.length()) + ")";
+				proto.replace(", null)", ")");
+				String.format("%s", proto);
+			}
+			else if (proto.contains(signature)) {
 				int start = proto.indexOf(signature) - 1;
 				int end = start + signature.length() - 1;
 				while (proto.charAt(end) != '(')
@@ -214,12 +226,23 @@ public class CodeFormatter {
 			proto = proto.replace("Map.dictionary", "HashMap<String, Object>");
 		}
 		if (proto.contains("ArrayList.arrayWithObjects(")) {
-			proto = proto.replace("Map.dictionary", "HashMap<String, Object>");
+			//proto = proto.replace("Map.dictionary", "HashMap<String, Object>");
 		}
 		if (proto.contains("String.stringWithFormat(")) {
 			proto = proto.replace("String.stringWithFormat(", "String.format(");
 			proto = fixFormatString(proto);
 		}
+		if (proto.contains("isKindOf(")) {
+			proto = isKindOf(proto);
+		}
+		return proto;
+	}
+
+	private String isKindOf(String proto) {
+//		proto = proto.replace("isKindOf(", "getClass().isInstance(");
+//		proto = proto.replace(".class", "");
+		proto = proto.replace("isKindOf(", "instanceof ");
+		proto = proto.replace(".class)", "");
 		return proto;
 	}
 

@@ -84,6 +84,10 @@ public class Parse {
 		Map<String, ClassDescription.ClassDeclaration> headerDeclarations = cd
 				.getHeaders();
 		boolean first = true;
+		if (doAll) {
+			useHeaderFile = true;
+			useAutoHeaderFile = false;
+		}
 		if (useHeaderFile) {
 			if (!first) {
 				cd = new ClassDescription(headerDeclarations);

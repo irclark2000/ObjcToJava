@@ -57,6 +57,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	private CodeFormatter codeFormat = new CodeFormatter();
 	private ParseOptions options;
 	private static final String CLASSNAME_MARKER = "__CLASS0x--x0NAME__";
+	private static final String GLOBAL_DECLARATION_MARKER = "__-GLOBAL-__";
 
 	String getCode(ParseTree ctx) {
 		return code.get(ctx);
@@ -98,28 +99,34 @@ public class ParserObjcListener extends ObjCBaseListener {
 		for (External_declarationContext ext : ctx.external_declaration()) {
 			program = program + getCode(ext);
 		}
+		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration.getClassDeclaration(classDeclarations, gClassName + GLOBAL_DECLARATION_MARKER);
+		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration.getClassDeclaration(headerDeclarations, gClassName + GLOBAL_DECLARATION_MARKER + "header");
+
 		System.out.print(program);
 	}
 
 	@Override
 	public void exitClass_implementation(
 			ObjCParser.Class_implementationContext ctx) {
-		String name = getCode(ctx.class_name());
-		gClassName = name;
-		String myClass = "public class " + name;
+		String cName = getCode(ctx.class_name());
+		gClassName = cName;
+		String myClass = "public class " + cName;
+		ClassDescription.ClassDeclaration headerDec = headerDeclarations.get(gClassName);
 		if (ctx.superclass_name() != null) {
 			myClass = myClass + " extends " + getCode(ctx.superclass_name());
-		} else if (this.gSuperClassName.length() > 0) {
-			myClass = myClass + " extends " + gSuperClassName;
+		} else if (headerDec != null && headerDec.getSuperClassName().length() > 0) {
+			myClass = myClass + " extends " + headerDec.getSuperClassName();
 		}
 		myClass = myClass + " {\n";
-		ClassDescription.ClassDeclaration cDec = null;
+		ClassDescription.ClassDeclaration currentDec = null;
 		if (ctx.implementation_definition_list() != null) {
-			cDec = getDeclaration(ctx.implementation_definition_list());
+			currentDec = getDeclaration(ctx.implementation_definition_list());
 		}
+		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration.getClassDeclaration(classDeclarations, cName + GLOBAL_DECLARATION_MARKER);
+		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration.getClassDeclaration(headerDeclarations, cName + GLOBAL_DECLARATION_MARKER + "header");
 		// get methods first
-		if (cDec != null) {
-			for (String method : cDec.getMethod_definitions()) {
+		if (currentDec != null) {
+			for (String method : currentDec.getMethod_definitions()) {
 				String code = method.replaceAll(CLASSNAME_MARKER, gClassName);
 				if (code.startsWith("public void dealloc")) {
 					continue;
@@ -130,9 +137,19 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 
 		// now getters and setters
-		if (cDec != null) {
+		if (currentDec != null) {
 			ArrayList<String> setters = codeFormat.generateGetters(
-					classDescription, cDec, gClassName);
+					classDescription, currentDec, gClassName);
+			if (setters.size() > 0) {
+				myClass += "\n";
+				for (String setter : setters) {
+					myClass += setter;
+				}
+			}
+		}
+		if (headerDec != null) {
+			ArrayList<String> setters = codeFormat.generateGetters(
+					classDescription, headerDec, gClassName);
 			if (setters.size() > 0) {
 				myClass += "\n";
 				for (String setter : setters) {
@@ -142,24 +159,21 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 		// now print out variables from property list
 		// from header first
-		ArrayList<String> vars = headerDeclarations.get(gClassName)
-				.getProperties();
+		ArrayList<String> vars = headerDec.getProperties();
 		for (String variable : vars) {
 			myClass += "\n" + variable + ";";
 		}
 		// then from current set
-		if (cDec != null) {
-			vars = cDec.getProperties();
+		if (currentDec != null) {
+			vars = currentDec.getProperties();
 			for (String variable : vars) {
 				myClass += "\n" + variable + ";";
 			}
 		}
 
 		// now the external variables
-		ClassDescription.ClassDeclaration vDec = classDeclarations.get("*");
-	if (vDec != null) {
-			ArrayList<String> variables = classDeclarations.get("*")
-					.getVariables();
+	if (globalClassDec != null) {
+			ArrayList<String> variables = globalClassDec.getVariables();
 			if (variables.size() > 0) {
 				myClass += "\n";
 				for (String variable : variables) {
@@ -339,7 +353,9 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitExternal_declaration(
 			ObjCParser.External_declarationContext ctx) {
-		ClassDescription.ClassDeclaration cd = choseMapAndDeclaration(gClassName);
+		ClassDescription.ClassDeclaration cd = chooseMapAndDeclaration(gClassName);
+		String cdx = ctx.getText();
+		String.format("%s", cdx);
 		if (ctx.declaration() != null) {
 			String dec = "static " + getCode(ctx.declaration());
 			cd.addVariable(dec);
@@ -421,7 +437,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		if (ctx.category_name() != null) {
 			categoryName = getCode(ctx.category_name());
 		}
-		ClassDescription.ClassDeclaration cDec = choseMapAndDeclaration(gClassName);
+		ClassDescription.ClassDeclaration cDec = chooseMapAndDeclaration(gClassName);
 		if (ctx.interface_declaration_list() != null) {
 			ClassDescription.ClassDeclaration list = getDeclaration(ctx
 					.interface_declaration_list());
@@ -512,9 +528,12 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	@Override
 	public void exitEnum_specifier(ObjCParser.Enum_specifierContext ctx) {
-		String en = "enum ";
-		if (ctx.identifier() != null) {
-			en += ctx.identifier().getText() + " ";
+		String code = ctx.getText();
+		String.format("%s", code);
+	
+		String en = "enum " + ctx.identifier().getText() + " ";
+		if (!ctx.getChild(1).getText().equals("{")) {
+			//en += ctx.identifier().getText() + " ";
 			if (ctx.enumerator_list() != null) {
 				ArrayList<String> list = getList(ctx.enumerator_list());
 				en += " {";
@@ -542,7 +561,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 			}
 			en += "}";
 		}
-		ClassDeclaration cd = choseMapAndDeclaration(gClassName);
+
+		ClassDeclaration cd = chooseMapAndDeclaration(gClassName);
 		cd.addEnum(en);
 		setCode(ctx, "");
 	}
@@ -552,11 +572,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 	 * @param className
 	 * @returns a class declaration holder for the given classname
 	 */
-	private ClassDeclaration choseMapAndDeclaration(String className) {
+	private ClassDeclaration chooseMapAndDeclaration(String className) {
 		ClassDeclaration cd;
 		String cName = className;
 		if (cName.length() == 0) {
-			cName = "*";
+			cName = classDescription.getTempClassName() + GLOBAL_DECLARATION_MARKER;
+			if (options.isParsingheader()) {
+				cName += "header";
+			}
 		}
 		if (options.isParsingheader()) {
 			cd = ClassDeclaration
@@ -1111,8 +1134,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 			cName = classDescription.getTempClassName();
 		}
 
-		if (ctx.getter_call() != null) {
-			mExpression = getCode(ctx.getter_call());
+		if (null != null) {
+			//mExpression = getCode(ctx.getter_call());
 		} else {
 			if (receiver.equals(gClassName)) {
 				// mExpression = "" + getCode(ctx.message_selector());
@@ -1699,7 +1722,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		if (ctx.declaration_specifiers() != null) {
 			fDef = getCode(ctx.declaration_specifiers());
 		}
-		fDef += getCode(ctx.declarator());
+		fDef += " " + getCode(ctx.declarator());
 		fDef += getCode(ctx.compound_statement());
 
 		setCode(ctx, fDef);
@@ -1709,6 +1732,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitClass_interface(ObjCParser.Class_interfaceContext ctx) {
 		String name = getCode(ctx.class_name());
 		gClassName = name;
+		gSuperClassName = "";
 		if (ctx.superclass_name() != null) {
 			gSuperClassName = getCode(ctx.superclass_name());
 		}
@@ -1720,6 +1744,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			cd = ClassDescription.ClassDeclaration.getClassDeclaration(
 					classDeclarations, gClassName);
 		}
+		cd.setSuperClassName(gSuperClassName);
 		if (ctx.instance_variables() != null) {
 			ArrayList<String> variables = cd.getVariables();
 			ArrayList<String> list = getList(ctx.instance_variables());
@@ -1734,7 +1759,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				list.add(protocol);
 			}
 		}
-		ClassDescription.ClassDeclaration cDec = choseMapAndDeclaration(gClassName);
+		ClassDescription.ClassDeclaration cDec = chooseMapAndDeclaration(gClassName);
 		if (ctx.interface_declaration_list() != null) {
 			ClassDescription.ClassDeclaration list = getDeclaration(ctx
 					.interface_declaration_list());

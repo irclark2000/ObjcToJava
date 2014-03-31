@@ -169,6 +169,7 @@ implementation_definition :
       | class_method_definition 
       | instance_method_definition
       | property_implementation
+	;
  
 class_method_definition:
 	('+' method_definition)
@@ -356,7 +357,7 @@ struct_declarator : declarator | declarator? ':' constant;
 
 enum_specifier : 'enum' 
   ( identifier ('{' enumerator_list '}')? 
-  | '{' enumerator_list '}') ;
+  | '{' enumerator_list '}' identifier);
 enumerator_list : enumerator (',' enumerator)* ;
 enumerator : identifier ('=' constant_expression)?;
 
