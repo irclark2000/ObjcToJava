@@ -104,7 +104,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration.getClassDeclaration(classDeclarations, gClassName + GLOBAL_DECLARATION_MARKER);
 		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration.getClassDeclaration(headerDeclarations, gClassName + GLOBAL_DECLARATION_MARKER + "header");
 
-		System.out.print(program);
+		//System.out.print(program);
 	}
 
 	@Override
@@ -1092,17 +1092,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitMessage_expression(ObjCParser.Message_expressionContext ctx) {
 		String message = ctx.getText();
 		String.format("%s", message);
-		String receiver = getCode(ctx.receiver());
 		String mExpression = "";
-		String cName = gClassName;
-		if (cName.length() == 0) {
-			cName = classDescription.getTempClassName();
-		}
-
-		if (null != null) {
-			//mExpression = getCode(ctx.getter_call());
-		} else {
-			if (receiver.equals(gClassName)) {
+		if (ctx.receiver() != null) {
+			String receiver = getCode(ctx.receiver());
+			String cName = gClassName;
+			if (cName.length() == 0) {
+				cName = classDescription.getTempClassName();
+			}
+			if (receiver.equals(cName)) {
 				// mExpression = "" + getCode(ctx.message_selector());
 				// experiment with this
 				mExpression = getCode(ctx.receiver()) + "."
@@ -1112,6 +1109,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 						+ getCode(ctx.message_selector());
 			}
 			mExpression = codeFormat.reformatMethodCall(mExpression, options);
+		} else {
+			//mExpression = getCode(ctx.getter_call());
 		}
 		setCode(ctx, mExpression);
 	}
@@ -1177,7 +1176,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void enterWhile_statement(ObjCParser.While_statementContext ctx) {
 		String code = ctx.getText();
 		String.format("%s", code);
-		String exp = getCode(ctx.parenthetical_expression());
+		String exp = getCode(ctx.expression());
 		String st = getCode(ctx.statement());
 		String wh = "while (" + exp + ")";
 		wh += st;
@@ -1185,8 +1184,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	}
 
-	@Override
-	public void exitIterFor(ObjCParser.IterForContext ctx) {
+	@Override public void exitFor_statement(ObjCParser.For_statementContext ctx) { 
 		String code = ctx.getText();
 		String.format("%s", code);
 		String fr = "for (" + getCode(ctx.for_complete());
@@ -1194,8 +1192,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		setCode(ctx, fr);
 	}
 
-	@Override
-	public void exitDowhile(ObjCParser.DowhileContext ctx) {
+	@Override public void exitDo_while_statement(ObjCParser.Do_while_statementContext ctx) { 
 		String doWhile = "do" + getCode(ctx.statement()) + " while("
 				+ getCode(ctx.expression()) + ";\n}";
 		setCode(ctx, doWhile);
@@ -1349,8 +1346,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 			rec = getCode(ctx.expression());
 		} else if (ctx.class_name() != null) {
 			rec = getCode(ctx.class_name());
-		} else if (ctx.getter_call() != null) {
-			rec = getCode(ctx.getter_call());
+		} else if (ctx.message_expression() != null) {
+			rec = getCode(ctx.message_expression());
 		} else { // super
 			rec = "super";
 		}
@@ -1411,6 +1408,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitSelector_expression(
 			ObjCParser.Selector_expressionContext ctx) {
+		String message = ctx.getText();
+		String.format("%s", message);
 		String selector = getCode(ctx.getChild(0)) + "("
 				+ getCode(ctx.selector_name()) + ")";
 		setCode(ctx, selector);

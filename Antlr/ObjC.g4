@@ -242,8 +242,8 @@ protocol_qualifier:
 
 primary_expression:
         simple_expression
-	| self_expression
 	| parenthetical_expression 
+	| selector_expression
 	;
 
 simple_expression :
@@ -251,6 +251,9 @@ simple_expression :
 	| constant 
 	| string_constant
 	| message_expression
+	| getter_call
+	| self_expression
+
 ;
 
 
@@ -262,7 +265,6 @@ self_expression : 'self' ;
 unsupported_instruction :
 	encode_expression
 	| protocol_expression
-	| selector_expression
         ;
       
 string_constant:  STRING_LITERAL;
@@ -275,7 +277,7 @@ receiver:
 	expression
 	| class_name 
 	| 'super'
-	| getter_call;
+	| message_expression;
 
 message_selector:
 	selector
@@ -399,10 +401,10 @@ statement
   | semi_statement
   | compound_statement
   | selection_statement
-  | iteration_statement
   | jump_statement
   | while_statement
-  | setter_call
+  | for_statement
+  | do_while_statement
   ;
 
 semi_statement 
@@ -424,12 +426,13 @@ selection_statement
   ;
 
 while_statement :
-   'while' parenthetical_expression statement 
- ;
-iteration_statement
-  : 'do' statement 'while' '(' expression ')' ';' #dowhile
-  | 'for' '(' for_complete statement  #iterFor
-  ;
+   'while' '(' expression ')' statement ;
+
+for_statement :
+   'for' '(' for_complete statement ;
+
+do_while_statement :
+   'do' statement 'while' '(' expression ')' ';' ;
 
 for_complete :
       expression ';' expression? ';' expression? ')' 
@@ -508,7 +511,7 @@ additive_expression : multiplicative_expression
   (add_op multiplicative_expression)* ;
 
 add_op :
-'<<' | '>>'
+'-' | '+'
    ;
 
 

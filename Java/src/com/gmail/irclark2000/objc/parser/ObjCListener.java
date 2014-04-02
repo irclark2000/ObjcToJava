@@ -46,6 +46,9 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterCastunary(ObjCParser.CastunaryContext ctx);
 	void exitCastunary(ObjCParser.CastunaryContext ctx);
 
+	void enterFor_statement(ObjCParser.For_statementContext ctx);
+	void exitFor_statement(ObjCParser.For_statementContext ctx);
+
 	void enterClass_interface(ObjCParser.Class_interfaceContext ctx);
 	void exitClass_interface(ObjCParser.Class_interfaceContext ctx);
 
@@ -352,9 +355,6 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterImplementation_definition(ObjCParser.Implementation_definitionContext ctx);
 	void exitImplementation_definition(ObjCParser.Implementation_definitionContext ctx);
 
-	void enterIterFor(ObjCParser.IterForContext ctx);
-	void exitIterFor(ObjCParser.IterForContext ctx);
-
 	void enterPrimitive_type_specifier(ObjCParser.Primitive_type_specifierContext ctx);
 	void exitPrimitive_type_specifier(ObjCParser.Primitive_type_specifierContext ctx);
 
@@ -399,9 +399,6 @@ public interface ObjCListener extends ParseTreeListener {
 
 	void enterProtocol_name(ObjCParser.Protocol_nameContext ctx);
 	void exitProtocol_name(ObjCParser.Protocol_nameContext ctx);
-
-	void enterDowhile(ObjCParser.DowhileContext ctx);
-	void exitDowhile(ObjCParser.DowhileContext ctx);
 
 	void enterCategory_implementation(ObjCParser.Category_implementationContext ctx);
 	void exitCategory_implementation(ObjCParser.Category_implementationContext ctx);
@@ -471,6 +468,9 @@ public interface ObjCListener extends ParseTreeListener {
 
 	void enterArrowpost(ObjCParser.ArrowpostContext ctx);
 	void exitArrowpost(ObjCParser.ArrowpostContext ctx);
+
+	void enterDo_while_statement(ObjCParser.Do_while_statementContext ctx);
+	void exitDo_while_statement(ObjCParser.Do_while_statementContext ctx);
 
 	void enterType_specifier(ObjCParser.Type_specifierContext ctx);
 	void exitType_specifier(ObjCParser.Type_specifierContext ctx);

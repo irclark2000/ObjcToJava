@@ -29,7 +29,7 @@ public class Parse {
 	private static final int USAGE_METHOD_CODE = 0;
 	private static final int MANGLED_COMMANDLINE_CODE = 1;
 	private static final int MANGLED_SCRIPT_FILE_CODE = 2;
-	private static final String USAGE_MESSAGE = "Usage: %s options [inputFile] \n"
+	private static final String USAGE_MESSAGE = "Usage: %s options [inputFile1,inputFile2] \n"
 			+ "Options:"
 			+ "\n-help              print this usage message"
 			+ "\n-header headerfile use fileName as headerFile when parsing input file"
@@ -97,6 +97,7 @@ public class Parse {
 			options.setParsingheader(true);
 			for (String headerFileName : headerFileNames) {
 				baseName = baseNameFromPath(headerFileName);
+				options.setClassName(baseName);
 				cd.setTempClassName(baseName);
 				BufferedInputStream instream = null;
 				instream = new BufferedInputStream(new FileInputStream(
@@ -254,17 +255,20 @@ public class Parse {
 					useHeaderFile = true;
 				}
 			} else if (i == list.size() - 1) {
+				useHeaderFile = true;
 				if (arg.startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 					;
 				} else {
-					inputFileNames.add(combinePathWithFileName(directoryName, arg));
-					baseName = getBaseName(arg);
+					String [] fNames = arg.split(",");
+					for (String fName : fNames) {
+					  inputFileNames.add(combinePathWithFileName(directoryName, fName));
+					}
 				}
 			}
 		}
 
-		if (outputFileName.length() == 0) {
+		if (null != null) {
 			useHeaderFile = false;
 			useAutoHeaderFile = false;
 		} else {

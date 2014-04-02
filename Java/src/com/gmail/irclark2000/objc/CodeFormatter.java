@@ -9,10 +9,17 @@ import java.util.List;
  * 
  */
 public class CodeFormatter {
-	private static final String REVERSE_ARGS_MARKER = "ReverseArgs";
+	/**
+	 *  Marker for identifying method needing reversed pair of arguments.
+	 */
+	public static final String REVERSE_ARGS_MARKER = "ReverseArgs";
 	private static final String SETTER = "\n%s get%s() {\nreturn this.%s; \n}\n";
 	private static final String GETTER = "\nvoid set%s(%s %s) {\nthis.%s = %s;\n}\n";
 	private ArrayList<String> constructorSignalsList;
+	
+	private CodeFormatterString stringFormat = new CodeFormatterString();
+	private CodeFormatterArrayList  arrayFormat = new CodeFormatterArrayList();
+	private CodeFormatterMap  dictionaryFormat = new CodeFormatterMap();
 
 	CodeFormatter() {
 		constructorSignalsList = new ArrayList<String>();
@@ -177,60 +184,16 @@ public class CodeFormatter {
 	public String reformatMethodCall(String call, ParseOptions options) {
 		// String proto = String.format("%s", call);
 		String proto = reformatConstructorCall(call, options);
+		proto = stringFormat.reformatStringFunctions (proto);
+		proto = arrayFormat.reformatArrayListFunctions (proto);
+		proto = dictionaryFormat.reformatMapFunctions (proto);
+		proto = fixReverseArgs(proto);
 
 		if (proto.contains(".autorelease()")) {
 			proto = proto.replace(".autorelease()", "");
 		}
-		if (proto.contains("insertObjectatIndex")) {
-			proto = proto.replace("insertObjectatIndex(", "add"
-					+ REVERSE_ARGS_MARKER + "(");
-			proto = fixReverseArgs(proto);
-		}
-		if (proto.contains("addObject")) {
-			proto = proto.replace("addObject(", "add(");
-		}
-		if (proto.contains("objectAtIndex")) {
-			proto = proto.replace("objectAtIndex(", "get(");
-		}
-		if (proto.contains("setObjectforKey")) {
-			proto = proto.replace("setObjectforKey(", "put"
-					+ REVERSE_ARGS_MARKER + "(");
-			proto = fixReverseArgs(proto);
-			// must reverse the args
-		}
-		if (proto.contains("substringToIndex")) {
-			proto = proto.replace("substringToIndex(", "substring(0, ");
-		}
-		if (proto.contains("substringFromIndex")) {
-			proto = proto.replace("substringFromIndex(", "substring(");
-		}
-		if (proto.contains("objectForKey")) {
-			proto = proto.replace("objectForKey(", "get(");
-		}
 		if (proto.contains("NSNull.null()")) {
 			proto = proto.replace("NSNull.null()", "null");
-		}
-		if (proto.contains("isEqualToString")) {
-			proto = proto.replace("isEqualToString(", "equals(");
-		}
-		if (proto.contains("allKeys")) {
-			proto = proto.replace("allKeys(", "keySet(");
-		}
-		if (proto.contains("hasPrefix")) {
-			proto = proto.replace("hasPrefix(", "startsWith(");
-		}
-		if (proto.contains("containsObject")) {
-			proto = proto.replace("containsObject(", "contains(");
-		}
-		if (proto.contains("Map.dictionary()")) {
-			proto = proto.replace("Map.dictionary", "HashMap<String, Object>");
-		}
-		if (proto.contains("ArrayList.arrayWithObjects(")) {
-			//proto = proto.replace("Map.dictionary", "HashMap<String, Object>");
-		}
-		if (proto.contains("String.stringWithFormat(")) {
-			proto = proto.replace("String.stringWithFormat(", "String.format(");
-			proto = fixFormatString(proto);
 		}
 		if (proto.contains("isKindOf(")) {
 			proto = isKindOf(proto);
@@ -320,9 +283,6 @@ public class CodeFormatter {
 		return call;
 	}
 
-	String fixFormatString(String str) {
-		return str;
-	}
 
 	// make sure things like static, final, public, private are in correct order
 	String fixDeclarations(String decl) {

@@ -49,6 +49,9 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterCastunary(ObjCParser.CastunaryContext ctx) { }
 	@Override public void exitCastunary(ObjCParser.CastunaryContext ctx) { }
 
+	@Override public void enterFor_statement(ObjCParser.For_statementContext ctx) { }
+	@Override public void exitFor_statement(ObjCParser.For_statementContext ctx) { }
+
 	@Override public void enterClass_interface(ObjCParser.Class_interfaceContext ctx) { }
 	@Override public void exitClass_interface(ObjCParser.Class_interfaceContext ctx) { }
 
@@ -355,9 +358,6 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterImplementation_definition(ObjCParser.Implementation_definitionContext ctx) { }
 	@Override public void exitImplementation_definition(ObjCParser.Implementation_definitionContext ctx) { }
 
-	@Override public void enterIterFor(ObjCParser.IterForContext ctx) { }
-	@Override public void exitIterFor(ObjCParser.IterForContext ctx) { }
-
 	@Override public void enterPrimitive_type_specifier(ObjCParser.Primitive_type_specifierContext ctx) { }
 	@Override public void exitPrimitive_type_specifier(ObjCParser.Primitive_type_specifierContext ctx) { }
 
@@ -402,9 +402,6 @@ public class ObjCBaseListener implements ObjCListener {
 
 	@Override public void enterProtocol_name(ObjCParser.Protocol_nameContext ctx) { }
 	@Override public void exitProtocol_name(ObjCParser.Protocol_nameContext ctx) { }
-
-	@Override public void enterDowhile(ObjCParser.DowhileContext ctx) { }
-	@Override public void exitDowhile(ObjCParser.DowhileContext ctx) { }
 
 	@Override public void enterCategory_implementation(ObjCParser.Category_implementationContext ctx) { }
 	@Override public void exitCategory_implementation(ObjCParser.Category_implementationContext ctx) { }
@@ -474,6 +471,9 @@ public class ObjCBaseListener implements ObjCListener {
 
 	@Override public void enterArrowpost(ObjCParser.ArrowpostContext ctx) { }
 	@Override public void exitArrowpost(ObjCParser.ArrowpostContext ctx) { }
+
+	@Override public void enterDo_while_statement(ObjCParser.Do_while_statementContext ctx) { }
+	@Override public void exitDo_while_statement(ObjCParser.Do_while_statementContext ctx) { }
 
 	@Override public void enterType_specifier(ObjCParser.Type_specifierContext ctx) { }
 	@Override public void exitType_specifier(ObjCParser.Type_specifierContext ctx) { }
