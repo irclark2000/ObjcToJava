@@ -10,16 +10,16 @@ import java.util.List;
  */
 public class CodeFormatter {
 	/**
-	 *  Marker for identifying method needing reversed pair of arguments.
+	 * Marker for identifying method needing reversed pair of arguments.
 	 */
 	public static final String REVERSE_ARGS_MARKER = "ReverseArgs";
 	private static final String SETTER = "\n%s get%s() {\nreturn this.%s; \n}\n";
 	private static final String GETTER = "\nvoid set%s(%s %s) {\nthis.%s = %s;\n}\n";
 	private ArrayList<String> constructorSignalsList;
-	
+
 	private CodeFormatterString stringFormat = new CodeFormatterString();
-	private CodeFormatterArrayList  arrayFormat = new CodeFormatterArrayList();
-	private CodeFormatterMap  dictionaryFormat = new CodeFormatterMap();
+	private CodeFormatterArrayList arrayFormat = new CodeFormatterArrayList();
+	private CodeFormatterMap dictionaryFormat = new CodeFormatterMap();
 
 	CodeFormatter() {
 		constructorSignalsList = new ArrayList<String>();
@@ -117,9 +117,11 @@ public class CodeFormatter {
 	}
 
 	/**
-	 * @param code the construction declaration
+	 * @param code
+	 *            the construction declaration
 	 * @param className
-	 * @param options parsing options
+	 * @param options
+	 *            parsing options
 	 * @return converts method definition into a constructor definition FIXME
 	 *         does not use signatures yet
 	 */
@@ -133,12 +135,17 @@ public class CodeFormatter {
 				if (cName.equals("Object")) {
 					cName = className;
 				}
-				if(parts[1].equals("init")) {
+				if (parts[1].equals("init")) {
 					proto = cName + "()";
 				} else {
 					int index = signature.length();
-					while(proto.charAt(index) != ')') index++;
-					proto = cName + proto.substring(index);
+					if (!proto.contains(")")) {
+						proto = cName + "()";
+					} else {
+						while (proto.charAt(index) != ')')
+							index++;
+						proto = cName + proto.substring(index);
+					}
 				}
 			}
 		}
@@ -156,12 +163,11 @@ public class CodeFormatter {
 				int start = proto.indexOf(aCall) + aCall.length();
 				while (proto.charAt(start) != '(')
 					start++;
-				proto = "new ArrayList(Arrays.AsList" 
+				proto = "new ArrayList(Arrays.AsList"
 						+ proto.substring(start, call.length()) + ")";
 				proto.replace(", null)", ")");
 				String.format("%s", proto);
-			}
-			else if (proto.contains(signature)) {
+			} else if (proto.contains(signature)) {
 				int start = proto.indexOf(signature) - 1;
 				int end = start + signature.length() - 1;
 				while (proto.charAt(end) != '(')
@@ -184,9 +190,9 @@ public class CodeFormatter {
 	public String reformatMethodCall(String call, ParseOptions options) {
 		// String proto = String.format("%s", call);
 		String proto = reformatConstructorCall(call, options);
-		proto = stringFormat.reformatStringFunctions (proto);
-		proto = arrayFormat.reformatArrayListFunctions (proto);
-		proto = dictionaryFormat.reformatMapFunctions (proto);
+		proto = stringFormat.reformatStringFunctions(proto);
+		proto = arrayFormat.reformatArrayListFunctions(proto);
+		proto = dictionaryFormat.reformatMapFunctions(proto);
 		proto = fixReverseArgs(proto);
 
 		if (proto.contains(".autorelease()")) {
@@ -202,8 +208,8 @@ public class CodeFormatter {
 	}
 
 	private String isKindOf(String proto) {
-//		proto = proto.replace("isKindOf(", "getClass().isInstance(");
-//		proto = proto.replace(".class", "");
+		// proto = proto.replace("isKindOf(", "getClass().isInstance(");
+		// proto = proto.replace(".class", "");
 		proto = proto.replace("isKindOf(", "instanceof ");
 		proto = proto.replace(".class)", "");
 		return proto;
@@ -282,7 +288,6 @@ public class CodeFormatter {
 		}
 		return call;
 	}
-
 
 	// make sure things like static, final, public, private are in correct order
 	String fixDeclarations(String decl) {

@@ -153,8 +153,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 		if (!options.isParsingheader()) {
 		   writeOutput(options.getOutputFileName(), program);
+			System.out.print(options.getOutputFileName() + "\n");
 		}
-		System.out.print(program);
 	}
 
 	@Override
