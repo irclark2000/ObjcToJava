@@ -1173,7 +1173,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	}
 
 	@Override
-	public void enterWhile_statement(ObjCParser.While_statementContext ctx) {
+	public void exitWhile_statement(ObjCParser.While_statementContext ctx) {
 		String code = ctx.getText();
 		String.format("%s", code);
 		String exp = getCode(ctx.expression());
