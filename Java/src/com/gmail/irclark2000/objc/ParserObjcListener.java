@@ -38,10 +38,9 @@ import com.gmail.irclark2000.objc.parser.ObjCParser.Struct_declaratorContext;
 import com.gmail.irclark2000.objc.parser.ObjCParser.Type_qualifierContext;
 
 /**
- * @author Isaac Clark
- * Listener Implemented Paring and Conversion
- * of Objective C to Java
- *
+ * @author Isaac Clark Listener Implemented Paring and Conversion of Objective C
+ *         to Java
+ * 
  */
 public class ParserObjcListener extends ObjCBaseListener {
 	ParseTreeProperty<String> code = new ParseTreeProperty<String>();
@@ -96,15 +95,66 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitTranslation_unit(ObjCParser.Translation_unitContext ctx) {
 		String program = "";
+		ArrayList<String> codeList = null;
 		for (External_declarationContext ext : ctx.external_declaration()) {
-			program = program + getCode(ext);
+			ArrayList<String> cl = getList(ext);
+			if (cl != null) {
+				codeList = cl;
+				break;
+			}
+		}
+		String cName = gClassName;
+		if (cName.length() == 0) {
+			cName = options.getClassName();
+		}
+		if (!options.isParsingheader()) {
+			if (codeList != null) {
+				program += codeList.get(0);
+				program += "{\n";
+				program += codeList.get(1);
+			} else {
+				program += "public class " + cName + " ";
+				program += "{\n";
+			}
+		}
+
+		String myCode = "";
+		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration
+				.getClassDeclaration(classDeclarations, cName
+						+ GLOBAL_DECLARATION_MARKER);
+		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration
+				.getClassDeclaration(headerDeclarations, cName
+						+ GLOBAL_DECLARATION_MARKER + "header");
+		for (String variable : globalClassDec.getVariables()) {
+			myCode += variable;
+		}
+
+		// enums
+		if (!options.isParsingheader()) {
+			for (String enumuerate : globalClassDec.getEnums()) {
+				myCode += enumuerate;
+			}
+			for (String enumuerate : globalHeaderDec.getEnums()) {
+				myCode += enumuerate;
+			}
+		}
+		// functions
+		if (!options.isParsingheader()) {
+			myCode += "\n";
+			for (String function : globalClassDec.getFunction_definitions()) {
+				myCode += function;
+			}
 		}
 		
-		//FIXME these should not be null
-		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration.getClassDeclaration(classDeclarations, gClassName + GLOBAL_DECLARATION_MARKER);
-		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration.getClassDeclaration(headerDeclarations, gClassName + GLOBAL_DECLARATION_MARKER + "header");
-
-		//System.out.print(program);
+		program += myCode;
+		if (!options.isParsingheader()) {
+			program += "\n}\n";
+			
+		}
+		if (!options.isParsingheader()) {
+		   writeOutput(options.getOutputFileName(), program);
+		}
+		System.out.print(program);
 	}
 
 	@Override
@@ -113,19 +163,27 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String cName = getCode(ctx.class_name());
 		gClassName = cName;
 		String myClass = "public class " + cName;
-		ClassDescription.ClassDeclaration headerDec = headerDeclarations.get(gClassName);
+		ArrayList<String> codeParts = new ArrayList<String>();
+		ClassDescription.ClassDeclaration headerDec = headerDeclarations
+				.get(gClassName);
 		if (ctx.superclass_name() != null) {
 			myClass = myClass + " extends " + getCode(ctx.superclass_name());
-		} else if (headerDec != null && headerDec.getSuperClassName().length() > 0) {
+		} else if (headerDec != null
+				&& headerDec.getSuperClassName().length() > 0) {
 			myClass = myClass + " extends " + headerDec.getSuperClassName();
 		}
-		myClass = myClass + " {\n";
+		codeParts.add(myClass);
+		myClass = "";
 		ClassDescription.ClassDeclaration currentDec = null;
 		if (ctx.implementation_definition_list() != null) {
 			currentDec = getDeclaration(ctx.implementation_definition_list());
 		}
-		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration.getClassDeclaration(classDeclarations, cName + GLOBAL_DECLARATION_MARKER);
-		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration.getClassDeclaration(headerDeclarations, cName + GLOBAL_DECLARATION_MARKER + "header");
+		ClassDescription.ClassDeclaration globalClassDec = ClassDeclaration
+				.getClassDeclaration(classDeclarations, cName
+						+ GLOBAL_DECLARATION_MARKER);
+		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration
+				.getClassDeclaration(headerDeclarations, cName
+						+ GLOBAL_DECLARATION_MARKER + "header");
 		// get methods first
 		if (currentDec != null) {
 			for (String method : currentDec.getMethod_definitions()) {
@@ -174,7 +232,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 
 		// now the external variables
-	if (globalClassDec != null) {
+		if (globalClassDec != null) {
 			ArrayList<String> variables = globalClassDec.getVariables();
 			if (variables.size() > 0) {
 				myClass += "\n";
@@ -191,10 +249,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		// myClass += variable;
 		// }
 		// }
-
-		myClass = myClass + "\n}\n";
-		writeOutput(options.getOutputFileName(), myClass);
-		setCode(ctx, myClass);
+		codeParts.add(myClass);
+		setList(ctx, codeParts);
 	}
 
 	@Override
@@ -363,8 +419,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 			cd.addVariable(dec);
 			setCode(ctx, "");
 		} else {
-			String code = getCode(ctx.getChild(0));
-			setCode(ctx, code);
+			ArrayList<String> code = getList(ctx.getChild(0));
+			setList(ctx, code);
 		}
 	}
 
@@ -386,7 +442,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				myClass = myClass + method;
 			}
 		}
-		//FIXME: add stuff after class_implementation is debugged
+		// FIXME: add stuff after class_implementation is debugged
 		// move final code output to exitExternal_Declaration
 	}
 
@@ -495,10 +551,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitEnum_specifier(ObjCParser.Enum_specifierContext ctx) {
 		String code = ctx.getText();
 		String.format("%s", code);
-	
+
 		String en = "enum " + ctx.identifier().getText() + " ";
 		if (!ctx.getChild(1).getText().equals("{")) {
-			//en += ctx.identifier().getText() + " ";
+			// en += ctx.identifier().getText() + " ";
 			if (ctx.enumerator_list() != null) {
 				ArrayList<String> list = getList(ctx.enumerator_list());
 				en += " {";
@@ -541,7 +597,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		ClassDeclaration cd;
 		String cName = className;
 		if (cName.length() == 0) {
-			cName = classDescription.getTempClassName() + GLOBAL_DECLARATION_MARKER;
+			cName = classDescription.getTempClassName()
+					+ GLOBAL_DECLARATION_MARKER;
 			if (options.isParsingheader()) {
 				cName += "header";
 			}
@@ -1110,7 +1167,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			}
 			mExpression = codeFormat.reformatMethodCall(mExpression, options);
 		} else {
-			//mExpression = getCode(ctx.getter_call());
+			// mExpression = getCode(ctx.getter_call());
 		}
 		setCode(ctx, mExpression);
 	}
@@ -1184,7 +1241,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	}
 
-	@Override public void exitFor_statement(ObjCParser.For_statementContext ctx) { 
+	@Override
+	public void exitFor_statement(ObjCParser.For_statementContext ctx) {
 		String code = ctx.getText();
 		String.format("%s", code);
 		String fr = "for (" + getCode(ctx.for_complete());
@@ -1192,7 +1250,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		setCode(ctx, fr);
 	}
 
-	@Override public void exitDo_while_statement(ObjCParser.Do_while_statementContext ctx) { 
+	@Override
+	public void exitDo_while_statement(ObjCParser.Do_while_statementContext ctx) {
 		String doWhile = "do" + getCode(ctx.statement()) + " while("
 				+ getCode(ctx.expression()) + ";\n}";
 		setCode(ctx, doWhile);
@@ -1682,14 +1741,17 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitFunction_definition(
 			ObjCParser.Function_definitionContext ctx) {
+		ClassDescription.ClassDeclaration cDec = chooseMapAndDeclaration(gClassName);
+
 		String fDef = "";
 		if (ctx.declaration_specifiers() != null) {
 			fDef = getCode(ctx.declaration_specifiers());
 		}
 		fDef += " " + getCode(ctx.declarator());
 		fDef += getCode(ctx.compound_statement());
+		cDec.addFunction_definition(fDef);
 
-		setCode(ctx, fDef);
+		setCode(ctx, "");
 	}
 
 	@Override
@@ -1858,8 +1920,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		this.classDeclarations = classDescription.getmFiles();
 	}
 
-	ParserObjcListener(ClassDescription classDescription,
-			ParseOptions options) {
+	ParserObjcListener(ClassDescription classDescription, ParseOptions options) {
 		super();
 		this.classDescription = classDescription;
 		this.options = options;
