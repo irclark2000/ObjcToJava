@@ -984,6 +984,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 		setCode(ctx, direct);
 	}
+	
+	@Override public void exitParameter_list(ObjCParser.Parameter_listContext ctx) { 
+		String code = getCode(ctx.parameter_declaration_list());
+		if (ctx.getChild(1) != null) {
+			code += ctx.getChild(1).getText() + ctx.getChild(2).getText();
+		}
+		setCode(ctx, code);
+	}
 
 	@Override
 	public void exitStatement_list(ObjCParser.Statement_listContext ctx) {
