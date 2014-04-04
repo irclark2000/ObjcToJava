@@ -3,11 +3,13 @@ package com.gmail.irclark2000.objc;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -17,8 +19,7 @@ import com.gmail.irclark2000.objc.parser.ObjCLexer;
 import com.gmail.irclark2000.objc.parser.ObjCParser;
 
 /**
- * @author Isaac Clark 
- * Driver class for running the parser from the command line
+ * @author Isaac Clark Driver class for running the parser from the command line
  * 
  */
 
@@ -38,8 +39,7 @@ public class Parse {
 			+ "\n-all dir           parse all headers and implementation files in directry dir"
 			+ "\n-o filename        write output to filename default is stdout"
 			+ "\n-cstruct item,item read list of constructor prefixes. Default is 'init'"
-			+ "\n-f scriptfile      read options from scriptfile"
-			+ "";
+			+ "\n-f scriptfile      read options from scriptfile" + "";
 
 	private static final String MANGLED_MESSAGE = "Command line error.\nType %s -help for usage information";
 	private static final String SCRIPT_MANGLED_MESSAGE = "Error specifing script file.\nType %s -help for usage information";
@@ -61,20 +61,20 @@ public class Parse {
 
 		List<String> argsList = Arrays.asList(args);
 		if (argsList.contains("-f")) {
-		   String scriptName = "";
-		   for (int i = 0; i < argsList.size(); i++) {
-			   if (argsList.get(i).equals("-f") && i < argsList.size() - 1) {
-				  scriptName = argsList.get(i+1);
-				  break;
-			   }
-		   }
-		   if (scriptName.length() > 0) {
-		      handleArgumentsFromFile (scriptName);
-		   } else {
-			   
-		   }
+			String scriptName = "";
+			for (int i = 0; i < argsList.size(); i++) {
+				if (argsList.get(i).equals("-f") && i < argsList.size() - 1) {
+					scriptName = argsList.get(i + 1);
+					break;
+				}
+			}
+			if (scriptName.length() > 0) {
+				handleArgumentsFromFile(scriptName);
+			} else {
+
+			}
 		} else {
-		   handleArguments (argsList);
+			handleArguments(argsList);
 		}
 		ParseOptions options = new ParseOptions();
 		for (String con : cStructSignals) {
@@ -135,7 +135,8 @@ public class Parse {
 				options.setClassName(baseName);
 				cd.setTempClassName(baseName);
 				options.setParsingheader(false);
-				options.setOutputFileName(combinePathWithFileName(directoryName, baseName + ".java"));
+				options.setOutputFileName(combinePathWithFileName(
+						directoryName, baseName + ".java"));
 				walker.walk(new ParserObjcListener(cd, options), tree);
 			}
 		}
@@ -154,7 +155,8 @@ public class Parse {
 	}
 
 	/**
-	 * @param fName filename
+	 * @param fName
+	 *            filename
 	 * @return returns the base for the given file name
 	 */
 	public static String getBaseName(String fName) {
@@ -182,21 +184,38 @@ public class Parse {
 		}
 		System.exit(errorCode);
 	}
-	
-	private static void handleArgumentsFromFile (String fileName) {
+
+	private static void handleArgumentsFromFile(String fileName) {
+		File f = new File(fileName);
+		Scanner sc = null;
+		List<String> args = new ArrayList<String>();
+		try {
+			sc = new Scanner(f);
+		} catch (FileNotFoundException e) {
+			printErrorAndExit(MANGLED_SCRIPT_FILE_CODE);
+		}
+		while (sc.hasNextLine()) {
+			String line = sc.nextLine().trim();
+			String [] parts = line.split("[ ]+");
+			for (String arg : parts) {
+				args.add(arg);
+			}
+		}
+		sc.close();
+		handleArguments(args);
 	}
 
-	private static void handleArguments (List<String> list) {
+	private static void handleArguments(List<String> list) {
 		for (int i = 0; i < list.size(); i++) {
 			String arg = list.get(i);
 			if (arg.equals("help") || arg.equals("-help")) {
 				printErrorAndExit(USAGE_METHOD_CODE);
 			} else if (arg.equals("-o")) {
-				if (i >= list.size() - 1 || list.get(i+1).startsWith("-")) {
+				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 					;
 				} else {
-					outputFileName = list.get(i+1);
+					outputFileName = list.get(i + 1);
 					i++;
 				}
 			} else if (arg.equals("-autoheader")) {
@@ -214,34 +233,34 @@ public class Parse {
 				continue;
 			} else if (arg.equals("-all")) {
 				doAll = true;
-				directoryName = list.get(i+1);
+				directoryName = list.get(i + 1);
 				File f = new File(list.get(i + 1));
 				File[] files = f.listFiles();
 				for (File file : files) {
 					if (file.isFile()) {
 						if (file.getAbsolutePath().endsWith(".h")) {
-						  headerFileNames.add(file.getAbsolutePath());
+							headerFileNames.add(file.getAbsolutePath());
 						} else if (file.getAbsolutePath().endsWith(".m")) {
-						   inputFileNames.add(file.getAbsolutePath());
+							inputFileNames.add(file.getAbsolutePath());
 						}
 					}
 				}
 				i++;
 			} else if (arg.equals("-cstruct")) {
-				if (i >= list.size() - 1 || list.get(i+1).startsWith("-")) {
+				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 				} else {
-					String [] parts = list.get(i+1).split(",");
-					for(String cStruct : parts) {
+					String[] parts = list.get(i + 1).split(",");
+					for (String cStruct : parts) {
 						cStructSignals.add(cStruct);
 					}
 				}
 			} else if (arg.equals("-allheader")) {
-				if (i >= list.size() - 1 || list.get(i+1).startsWith("-")) {
+				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 				} else {
-					directoryName = list.get(i+1);
-					File f = new File(list.get(i+1));
+					directoryName = list.get(i + 1);
+					File f = new File(list.get(i + 1));
 					File[] files = f.listFiles();
 					for (File file : files) {
 						if (file.isFile()
@@ -260,9 +279,12 @@ public class Parse {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
 					;
 				} else {
-					String [] fNames = arg.split(",");
-					for (String fName : fNames) {
-					  inputFileNames.add(combinePathWithFileName(directoryName, fName));
+					if (!doAll) {
+						String[] fNames = arg.split(",");
+						for (String fName : fNames) {
+							inputFileNames.add(combinePathWithFileName(
+									directoryName, fName));
+						}
 					}
 				}
 			}
@@ -278,17 +300,17 @@ public class Parse {
 			}
 		}
 	}
+
 	private static String baseNameFromPath(String fName) {
 		File f = new File(fName);
 		String bName = f.getName();
 		return getBaseName(bName);
 	}
 
-	private static String combinePathWithFileName(String directory,
-			String fName) {
-//		directory.replace("/", File.separator);
-//		directory.replace("\\", File.separator);
-		if (directory.charAt(directory.length() -1) != '/') {
+	private static String combinePathWithFileName(String directory, String fName) {
+		// directory.replace("/", File.separator);
+		// directory.replace("\\", File.separator);
+		if (directory.charAt(directory.length() - 1) != '/') {
 			directory += "/";
 		}
 		return directory + fName;
