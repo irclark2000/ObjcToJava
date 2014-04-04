@@ -11,10 +11,12 @@ public class ParseOptions {
 	private ArrayList<String> constructorSignatures;
 	private String outputFileName;
 	private String className;
+	private String directoryObject;
 	private boolean parsingheader;
 	
 	ParseOptions () {
 		constructorSignatures = new ArrayList<String>();
+		directoryObject = "String";
 	}
 	
 	/**
@@ -65,6 +67,20 @@ public class ParseOptions {
 	 */
 	public void setParsingheader(boolean parsingheader) {
 		this.parsingheader = parsingheader;
+	}
+
+	/**
+	 * @return the directoryObject
+	 */
+	public String getDirectoryObject() {
+		return directoryObject;
+	}
+
+	/**
+	 * @param directoryObject the directoryObject to set
+	 */
+	public void setDirectoryObject(String directoryObject) {
+		this.directoryObject = directoryObject;
 	}
 
 }

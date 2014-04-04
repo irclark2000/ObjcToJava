@@ -139,42 +139,42 @@ public class CodeFormatter {
 					proto = cName + "()";
 				} else {
 					int index = signature.length();
-					if (!proto.contains(")")) {
+					if (!proto.contains("(")) {
 						proto = cName + "()";
 					} else {
-						while (proto.charAt(index) != ')')
+						while (proto.charAt(index) != '(')
 							index++;
 						proto = cName + proto.substring(index);
 					}
 				}
+				break;
 			}
 		}
 		return proto;
 	}
 
 	private String reformatConstructorCall(String call, ParseOptions options) {
-		String proto = String.format("%s", call);
-		for (String signature : options.getConstructorSignatures()) {
-			if (signature.equals("init")) {
-				signature = "alloc().init";
-			}
-			if (proto.contains("ArrayList.alloc().initWithObjects(")) {
-				String aCall = ".alloc().initWithObjects(";
-				int start = proto.indexOf(aCall) + aCall.length();
-				while (proto.charAt(start) != '(')
-					start++;
-				proto = "new ArrayList(Arrays.AsList"
-						+ proto.substring(start, call.length()) + ")";
-				proto.replace(", null)", ")");
-				String.format("%s", proto);
-			} else if (proto.contains(signature)) {
+		//String proto = String.format("%s", call);
+		String proto = arrayFormat.reformatConstructorCall(call, options);
+		ArrayList<String> signatures = new ArrayList<String>();
+		signatures.addAll(options.getConstructorSignatures());
+		if (signatures.contains("init")) {
+			signatures.add(0, "alloc().init");
+		}
+		for (String signature : signatures) {
+			if (proto.contains(signature)) {
 				int start = proto.indexOf(signature) - 1;
 				int end = start + signature.length() - 1;
 				while (proto.charAt(end) != '(')
 					end++;
-				proto = "new " + proto.substring(0, start)
-						+ proto.substring(end, call.length());
-				String.format("%s", proto);
+				if (call.startsWith("super")) {
+					proto = proto.substring(0, start)
+							+ proto.substring(end, call.length());
+				} else {
+					proto = "new " + proto.substring(0, start)
+							+ proto.substring(end, call.length());
+				}
+				break;
 			}
 		}
 		return proto;
@@ -192,7 +192,7 @@ public class CodeFormatter {
 		String proto = reformatConstructorCall(call, options);
 		proto = stringFormat.reformatStringFunctions(proto);
 		proto = arrayFormat.reformatArrayListFunctions(proto);
-		proto = dictionaryFormat.reformatMapFunctions(proto);
+		proto = dictionaryFormat.reformatMapFunctions(proto, options);
 		proto = fixReverseArgs(proto);
 
 		if (proto.contains(".autorelease()")) {
@@ -292,7 +292,7 @@ public class CodeFormatter {
 	// make sure things like static, final, public, private are in correct order
 	String fixDeclarations(String decl) {
 		String dec = "";
-		String[] decParts = decl.split(" ");
+		String[] decParts = decl.split("[ ]+");
 		List<String> parts = Arrays.asList(decParts);
 		if (parts.contains("public")) {
 			dec = "public";
@@ -336,19 +336,15 @@ public class CodeFormatter {
 	}
 
 	String codeIndenter(String code) {
-		int level = 0;
+		int level = 1;
 		boolean insideQuote = false;
 		boolean insideSingleQuote = false;
 		boolean escape = false;
-		boolean appendAgain = false;
-		String rewrite = "";
+		boolean addTabs = false;
+		StringBuffer rewrite = new StringBuffer("");
 		for (int i = 0; i < code.length(); i++) {
 			char c = code.charAt(i);
-			if (appendAgain) {
-				rewrite += tabsForLevel(level);
-				appendAgain = false;
-			}
-			rewrite += c;
+			addTabs = false;
 
 			if (insideQuote || insideSingleQuote) {
 				if (!escape && c == '\\') {
@@ -369,15 +365,28 @@ public class CodeFormatter {
 			}
 			if (!insideQuote && !insideSingleQuote) {
 				if (c == '\n') {
-					rewrite += tabsForLevel(level);
+					addTabs = true;
 				} else if (c == '}') {
-					appendAgain = true;
+					//appendAgain = true;
 					level--;
 				} else if (c == '{') {
 					level++;
 				}
 			}
+			if (addTabs) {
+				rewrite.append(c + tabsForLevel(level));
+				addTabs = false;
+			} else if (c == '}') {
+			    // remove 1 tab
+				if (rewrite.charAt(rewrite.length()-1) == '\t') {
+					rewrite.setCharAt(rewrite.length()-1, c);
+				} else {
+					rewrite.append(c);
+				}
+			} else {
+				rewrite.append(c);
+			}
 		}
-		return rewrite;
+		return rewrite.toString();
 	}
 }

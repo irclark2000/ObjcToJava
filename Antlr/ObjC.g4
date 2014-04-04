@@ -267,7 +267,7 @@ unsupported_instruction :
 	| protocol_expression
         ;
       
-string_constant:  STRING_LITERAL;
+string_constant:  STRING_LITERAL  | CSTRING_LITERAL;
             
 message_expression:
 	'[' receiver message_selector ']'
@@ -582,6 +582,10 @@ CHARACTER_LITERAL
 s_char = [[[any_char - '"'] - '\'] - nl] | escape_sequence;
 string_literal = ('L' | '@') '"' s_char* '"';
 */
+
+CSTRING_LITERAL
+    :  STRING
+    ;
 
 STRING_LITERAL
     :  [L@] STRING

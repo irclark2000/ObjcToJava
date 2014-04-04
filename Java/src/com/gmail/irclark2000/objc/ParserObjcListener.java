@@ -191,7 +191,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				if (code.startsWith("public void dealloc")) {
 					continue;
 				}
-				code = codeFormat.codeIndenter(code);
+				code = codeFormat.codeIndenter("\n" + code);
 				myClass = myClass + code;
 			}
 		}
@@ -203,7 +203,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			if (setters.size() > 0) {
 				myClass += "\n";
 				for (String setter : setters) {
-					myClass += setter;
+					myClass += codeFormat.codeIndenter(setter);
 				}
 			}
 		}
@@ -213,7 +213,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			if (setters.size() > 0) {
 				myClass += "\n";
 				for (String setter : setters) {
-					myClass += setter;
+					myClass += codeFormat.codeIndenter(setter);
 				}
 			}
 		}
@@ -1371,7 +1371,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	@Override
 	public void exitString_constant(ObjCParser.String_constantContext ctx) {
-		String stmt = ctx.getText().substring(1);
+		String stmt = ctx.getText();
+		if (stmt.charAt(0) != '"') {
+			stmt = stmt.substring(1);
+		}
 		setCode(ctx, stmt);
 	}
 
