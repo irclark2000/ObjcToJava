@@ -13,6 +13,11 @@
 
 grammar ObjC;
 
+@lexer::members {
+  public static final int WHITESPACE = 1;
+  public static final int COMMENTS = 2;
+}
+
 translation_unit: external_declaration+ EOF;
 
 external_declaration:
@@ -636,21 +641,21 @@ UnicodeEscape
     :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
     ;
 
-IMPORT : '#import' [ \t]* (STRING|ANGLE_STRING) WS -> channel(HIDDEN) ;
-INCLUDE: '#include'[ \t]* (STRING|ANGLE_STRING) WS -> channel(HIDDEN) ;
-PRAGMA : '#pragma' ~[\r\n]* -> channel(HIDDEN) ;
+IMPORT : '#import' [ \t]* (STRING|ANGLE_STRING) WS -> channel(WHITESPACE) ;
+INCLUDE: '#include'[ \t]* (STRING|ANGLE_STRING) WS -> channel(WHITESPACE) ;
+PRAGMA : '#pragma' ~[\r\n]* -> channel(WHITESPACE) ;
 
 fragment
 ANGLE_STRING
     :   '<' .*? '>'
     ;
 
-WS  :  [ \r\n\t\u000C] -> channel(HIDDEN) ;
+WS  :  [ \r\n\t\u000C] -> channel(WHITESPACE) ;
 
 COMMENT
-    :   '/*' .*? '*/'  -> channel(HIDDEN)
+    :   '/*' .*? '*/'  -> channel(COMMENT)
     ;
 
 LINE_COMMENT
-    : '//' ~[\r\n]*  -> channel(HIDDEN)
+    : '//' ~[\r\n]*  -> channel(COMMENT)
     ;

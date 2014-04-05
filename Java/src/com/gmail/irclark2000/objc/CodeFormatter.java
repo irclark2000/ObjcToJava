@@ -20,6 +20,7 @@ public class CodeFormatter {
 	private CodeFormatterString stringFormat = new CodeFormatterString();
 	private CodeFormatterArrayList arrayFormat = new CodeFormatterArrayList();
 	private CodeFormatterMap dictionaryFormat = new CodeFormatterMap();
+	private CodeFormatterUserDefined userDefinedFormat = new CodeFormatterUserDefined();
 
 	CodeFormatter() {
 		constructorSignalsList = new ArrayList<String>();
@@ -51,6 +52,7 @@ public class CodeFormatter {
 		} else if (id.equals("bool")) {
 			id = "boolean";
 		}
+		id = userDefinedFormat.identifierFormatter(id);
 		return id;
 	}
 
@@ -156,6 +158,7 @@ public class CodeFormatter {
 	private String reformatConstructorCall(String call, ParseOptions options) {
 		//String proto = String.format("%s", call);
 		String proto = arrayFormat.reformatConstructorCall(call, options);
+		proto = userDefinedFormat.reformatConstructorCall(proto, options);
 		ArrayList<String> signatures = new ArrayList<String>();
 		signatures.addAll(options.getConstructorSignatures());
 		if (signatures.contains("init")) {
@@ -193,6 +196,7 @@ public class CodeFormatter {
 		proto = stringFormat.reformatStringFunctions(proto);
 		proto = arrayFormat.reformatArrayListFunctions(proto);
 		proto = dictionaryFormat.reformatMapFunctions(proto, options);
+		proto = userDefinedFormat.reformatMethodCall(proto, options);
 		proto = fixReverseArgs(proto);
 
 		if (proto.contains(".autorelease()")) {
@@ -389,4 +393,68 @@ public class CodeFormatter {
 		}
 		return rewrite.toString();
 	}
+	/**
+	 * @param call
+	 * @return array of args from function call
+	 */
+	public static ArrayList<String> getFunctionArguments(String call) {
+		ArrayList<String> args = new ArrayList<String>();
+		boolean insideQuote = false;
+		boolean insideSingleQuote = false;
+		int parenCount = 0;
+		// move to starting paren
+		int start = 0;
+		String arg;
+		while (call.charAt(start) != '(')
+			start++;
+		int end = start + 1;
+		while (true) {
+			char c = call.charAt(end);
+			if (!insideQuote && !insideSingleQuote && parenCount == 0) {
+				if (c == ',') {
+					arg = call.substring(start + 1, end);
+					args.add(arg);
+					start = end;
+				} else if (c == '(') {
+					parenCount++;
+				} else if (c == '\'') {
+					insideSingleQuote = true;
+				} else if (c == '\"') {
+					insideQuote = true;
+				} else if (c == ')') {
+					arg = call.substring(start + 1, end);
+					args.add(arg);
+					break;
+				} 
+				end++;
+			} else if (parenCount != 0) {
+				if (!insideSingleQuote && !insideQuote) {
+					if (c == '(')
+						parenCount++;
+					if (c == ')')
+						parenCount--;
+				}
+				end++;
+			} else if (insideSingleQuote) {
+				if (!insideQuote && parenCount == 0) {
+					if (c == '\'' && call.charAt(end - 1) != '\\') {
+						insideSingleQuote = false;
+					}
+				}
+				end++;
+			} else if (insideQuote) {
+				if (!insideSingleQuote && parenCount == 0) {
+					if (c == '\"' && call.charAt(end - 1) != '\\') {
+						insideQuote = false;
+					}
+				}
+				end++;
+			} else {
+				end++;
+			}
+		}
+
+		return args;
+	}
 }
+

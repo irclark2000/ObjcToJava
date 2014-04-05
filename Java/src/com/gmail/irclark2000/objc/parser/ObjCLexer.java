@@ -84,6 +84,10 @@ public class ObjCLexer extends Lexer {
 	};
 
 
+	  public static final int WHITESPACE = 1;
+	  public static final int COMMENTS = 2;
+
+
 	public ObjCLexer(CharStream input) {
 		super(input);
 		_interp = new LexerATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
@@ -122,32 +126,32 @@ public class ObjCLexer extends Lexer {
 	}
 	private void IMPORT_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
-		case 0: _channel = HIDDEN;  break;
+		case 0: _channel = WHITESPACE;  break;
 		}
 	}
 	private void WS_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
-		case 3: _channel = HIDDEN;  break;
+		case 3: _channel = WHITESPACE;  break;
 		}
 	}
 	private void LINE_COMMENT_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
-		case 5: _channel = HIDDEN;  break;
+		case 5: _channel = COMMENT;  break;
 		}
 	}
 	private void COMMENT_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
-		case 4: _channel = HIDDEN;  break;
+		case 4: _channel = COMMENT;  break;
 		}
 	}
 	private void INCLUDE_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
-		case 1: _channel = HIDDEN;  break;
+		case 1: _channel = WHITESPACE;  break;
 		}
 	}
 	private void PRAGMA_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
-		case 2: _channel = HIDDEN;  break;
+		case 2: _channel = WHITESPACE;  break;
 		}
 	}
 
