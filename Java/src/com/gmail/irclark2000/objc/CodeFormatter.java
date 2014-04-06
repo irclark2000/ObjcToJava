@@ -29,16 +29,17 @@ public class CodeFormatter {
 
 	/**
 	 * @param id
+	 * @param options
 	 * @return id after reformatting to Java conventions
 	 */
-	public String identifierFormatter(String id) {
-		if (id.equals("NSString") || id.equals("NSMutableString")) {
+	public String identifierFormatter(String id, ParseOptions options) {
+		if (id.equals("NSError")) {
+			id = "Data";
+		} else if (id.equals("NSString") || id.equals("NSMutableString")) {
 			id = "String";
-		} else if (id.equals("NSArray") || id.equals("NSMutableArray")) {
-			id = "ArrayList";
 		} else if (id.equals("NSDictionary")
 				|| id.equals("NSMutableDictionary")) {
-			id = "Map<String, Object>";
+			id = "Map<String, " + options.getDirectoryObject() + ">";
 		} else if (id.equals("YES") || id.equals("TRUE")) {
 			id = "true";
 		} else if (id.equals("NO") || id.equals("FALSE")) {
@@ -52,13 +53,14 @@ public class CodeFormatter {
 		} else if (id.equals("bool")) {
 			id = "boolean";
 		}
-		id = userDefinedFormat.identifierFormatter(id);
+		id = arrayFormat.identifierFormatter(id, options);
+		id = userDefinedFormat.identifierFormatter(id, options);
 		return id;
 	}
 
 	/**
 	 * @param cd
-	 *            class description holder
+	 *            class description holder,
 	 * @param cDec
 	 *            class description for getters
 	 * @param className
@@ -93,25 +95,32 @@ public class CodeFormatter {
 			ClassDescription cd, ClassDescription.ClassDeclaration cDecl) {
 		String type = "";
 		ClassDescription.ClassDeclaration cDec = null;
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < 4; i++) {
 			switch (i) {
 			case 0:
-				cDec = cd.getHeaders().get(className);
+				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, className, false);
 				break;
 			case 1:
-				cDec = cd.getmFiles().get(className);
+				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, className, true);
+				break;
+			case 2:
+				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, "", false);
+				break;
+			case 3:
+				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, "", true);
 				break;
 			}
-
-			ArrayList<String> properties = cDec.getProperties();
-			for (String property : properties) {
-				String[] parts = property.split("[ ]+");
-				if (parts[parts.length - 1].equals(vName)) {
-					type = parts[0];
-					for (int j = 1; j < parts.length - 1; j++) {
-						type += " " + parts[j];
+			if (cDec != null) {
+				ArrayList<String> properties = cDec.getProperties();
+				for (String property : properties) {
+					String[] parts = property.split("[ ]+");
+					if (parts[parts.length - 1].equals(vName)) {
+						type = parts[0];
+						for (int j = 1; j < parts.length - 1; j++) {
+							type += " " + parts[j];
+						}
+						return type;
 					}
-					return type;
 				}
 			}
 		}
@@ -156,8 +165,9 @@ public class CodeFormatter {
 	}
 
 	private String reformatConstructorCall(String call, ParseOptions options) {
-		//String proto = String.format("%s", call);
+		// String proto = String.format("%s", call);
 		String proto = arrayFormat.reformatConstructorCall(call, options);
+		proto = dictionaryFormat.reformatConstructorCall(proto, options);
 		proto = userDefinedFormat.reformatConstructorCall(proto, options);
 		ArrayList<String> signatures = new ArrayList<String>();
 		signatures.addAll(options.getConstructorSignatures());
@@ -222,73 +232,12 @@ public class CodeFormatter {
 	String fixReverseArgs(String fCall) {
 		// FIXME not handling case having conditional operator argument
 		String call = String.format("%s", fCall);
-		boolean insideQuote = false;
-		int braceCount = 0;
-		int parenCount = -1;
 		int start = call.indexOf(REVERSE_ARGS_MARKER);
 		if (start != -1) {
-			int commaLoc = start + REVERSE_ARGS_MARKER.length();
-			// find comma
-			while (insideQuote || braceCount != 0 || parenCount != 0
-					|| call.charAt(commaLoc) != ',') {
-				char c = call.charAt(commaLoc);
-				if (c == '"') {
-					insideQuote = !insideQuote;
-				} else if (c == '(' && !insideQuote) {
-					parenCount++;
-				} else if (c == ')' && !insideQuote) {
-					parenCount--;
-				} else if (c == '{' && !insideQuote) {
-					braceCount++;
-				} else if (c == '}' && !insideQuote) {
-					braceCount--;
-				}
-				commaLoc++;
-				if (commaLoc >= call.length()) {
-					return call;
-				}
-			}
-			// find starting parenthesis
-			int parenOpen = start + +REVERSE_ARGS_MARKER.length();
-			while (call.charAt(parenOpen) != '(') {
-				parenOpen++;
-				if (parenOpen >= call.length()) {
-					return call;
-				}
-			}
-			// find ending parenthesis
-			int parenClose = commaLoc + 1;
-			insideQuote = false;
-			braceCount = 0;
-			parenCount = 0;
-			while (insideQuote || braceCount != 0 || parenCount != 0
-					|| call.charAt(parenClose) != ')') {
-				char c = call.charAt(parenClose);
-				if (c == '"') {
-					insideQuote = !insideQuote;
-				} else if (c == '(' && !insideQuote) {
-					parenCount++;
-				} else if (c == ')' && !insideQuote) {
-					if (parenCount != 0) {
-						parenCount--;
-					}
-				} else if (c == '{' && !insideQuote) {
-					braceCount++;
-				} else if (c == '}' && !insideQuote) {
-					braceCount--;
-				}
-				parenClose++;
-				if (parenClose >= call.length()) {
-					return call;
-				}
-			}
-			// put a new call together
-			String part1 = call.substring(0, parenOpen) + "(";
-			String part2 = call.substring(commaLoc + 1, parenClose).trim()
-					+ ", ";
-			String part3 = call.substring(parenOpen + 1, commaLoc) + ")";
-			String ans = part1 + part2 + part3;
-			call = ans.replace(REVERSE_ARGS_MARKER, "");
+			int startArgs = start + REVERSE_ARGS_MARKER.length();
+			ArrayList<String> args = getFunctionArguments(fCall.substring(startArgs));
+			call = call.substring(0, startArgs + 1) + args.get(1) + ", " + args.get(0) + ")";
+			call = call.replace(REVERSE_ARGS_MARKER, "");
 		}
 		return call;
 	}
@@ -371,7 +320,7 @@ public class CodeFormatter {
 				if (c == '\n') {
 					addTabs = true;
 				} else if (c == '}') {
-					//appendAgain = true;
+					// appendAgain = true;
 					level--;
 				} else if (c == '{') {
 					level++;
@@ -381,9 +330,9 @@ public class CodeFormatter {
 				rewrite.append(c + tabsForLevel(level));
 				addTabs = false;
 			} else if (c == '}') {
-			    // remove 1 tab
-				if (rewrite.charAt(rewrite.length()-1) == '\t') {
-					rewrite.setCharAt(rewrite.length()-1, c);
+				// remove 1 tab
+				if (rewrite.charAt(rewrite.length() - 1) == '\t') {
+					rewrite.setCharAt(rewrite.length() - 1, c);
 				} else {
 					rewrite.append(c);
 				}
@@ -393,6 +342,7 @@ public class CodeFormatter {
 		}
 		return rewrite.toString();
 	}
+
 	/**
 	 * @param call
 	 * @return array of args from function call
@@ -410,43 +360,36 @@ public class CodeFormatter {
 		int end = start + 1;
 		while (true) {
 			char c = call.charAt(end);
-			if (!insideQuote && !insideSingleQuote && parenCount == 0) {
+			if (!insideQuote && !insideSingleQuote) {
 				if (c == ',') {
-					arg = call.substring(start + 1, end);
-					args.add(arg);
-					start = end;
+					if (parenCount == 0) {
+						arg = call.substring(start + 1, end);
+						args.add(arg.trim());
+						start = end;
+					}
 				} else if (c == '(') {
 					parenCount++;
 				} else if (c == '\'') {
-					insideSingleQuote = true;
+					insideSingleQuote = !insideSingleQuote;
 				} else if (c == '\"') {
-					insideQuote = true;
+					insideQuote = !insideQuote;
 				} else if (c == ')') {
-					arg = call.substring(start + 1, end);
-					args.add(arg);
-					break;
-				} 
-				end++;
-			} else if (parenCount != 0) {
-				if (!insideSingleQuote && !insideQuote) {
-					if (c == '(')
-						parenCount++;
-					if (c == ')')
-						parenCount--;
-				}
-				end++;
-			} else if (insideSingleQuote) {
-				if (!insideQuote && parenCount == 0) {
-					if (c == '\'' && call.charAt(end - 1) != '\\') {
-						insideSingleQuote = false;
+					parenCount--;
+					if (parenCount < 0) {
+						arg = call.substring(start + 1, end);
+						args.add(arg.trim());
+						break;
 					}
 				}
 				end++;
 			} else if (insideQuote) {
-				if (!insideSingleQuote && parenCount == 0) {
-					if (c == '\"' && call.charAt(end - 1) != '\\') {
-						insideQuote = false;
-					}
+				if (c == '\"' && call.charAt(end - 1) != '\\') {
+					insideQuote = !insideQuote;
+				}
+				end++;
+			} else if (insideSingleQuote) {
+				if (c == '\'' && call.charAt(end - 1) != '\\') {
+					insideSingleQuote = !insideSingleQuote;
 				}
 				end++;
 			} else {
@@ -457,4 +400,3 @@ public class CodeFormatter {
 		return args;
 	}
 }
-

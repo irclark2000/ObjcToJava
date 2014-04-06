@@ -8,6 +8,23 @@ package com.gmail.irclark2000.objc;
  */
 
 public class CodeFormatterMap {
+	
+	/**
+	 * @param call
+	 * @param options
+	 * @return dictionary constructors expressed as Map calls
+	 */
+	
+	public String reformatConstructorCall(String call, ParseOptions options) {
+		String proto = String.format("%s", call);
+		String mapCall = "Map<String, " + options.getDirectoryObject() + ">";
+		if (proto.contains(mapCall + ".alloc().init(")) {
+			proto = "new Hash" + mapCall + "()";
+		}
+
+		return proto;
+	}
+
 
 	/**
 	 * @param call using objective C NSDictionary method
@@ -16,6 +33,7 @@ public class CodeFormatterMap {
 	 */
 	public String reformatMapFunctions(String call, ParseOptions options) {
 		String proto = String.format("%s", call);
+		String mapType = "<String, " + options.getDirectoryObject() + ">";
 
 		if (proto.contains("setObjectforKey")) {
 			proto = proto.replace("setObjectforKey(", "put"
@@ -33,8 +51,8 @@ public class CodeFormatterMap {
 		if (proto.contains("allKeys")) {
 			proto = proto.replace("allKeys(", "keySet(");
 		}		
-		if (proto.contains("Map.dictionary()")) {
-			proto = proto.replace("Map.dictionary", "new HashMap<String, " + options.getDirectoryObject() + ">");
+		if (proto.contains("Map" + mapType + ".dictionary()")) {
+			proto = proto.replace("Map" + mapType + ".dictionary", "new HashMap" + mapType);
 		}
 		return proto;
 	}

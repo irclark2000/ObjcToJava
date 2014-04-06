@@ -13,6 +13,7 @@ import java.util.Scanner;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import com.gmail.irclark2000.objc.parser.ObjCLexer;
@@ -109,7 +110,7 @@ public class Parse {
 						.translation_unit();
 				// walk the tree and activate so we can listen
 				ParseTreeWalker walker = new ParseTreeWalker();
-				walker.walk(new ParserObjcListener(cd, options), tree);
+				walker.walk(new ParserObjcListener(cd, null, options), tree);
 				instream.close();
 			}
 		}
@@ -125,9 +126,10 @@ public class Parse {
 				ANTLRInputStream antlrStream = null;
 				antlrStream = new ANTLRInputStream(instream);
 				// lexing
-				ObjCParser.Translation_unitContext tree = new ObjCParser(
-						new CommonTokenStream(new ObjCLexer(antlrStream)))
-						.translation_unit();
+				ObjCLexer lexer = new ObjCLexer(antlrStream);
+				CommonTokenStream tokens = new CommonTokenStream(lexer);
+				ObjCParser parser = new ObjCParser(tokens);
+				RuleContext tree = parser.translation_unit();
 
 				// walk the tree and activate so we can listen
 				ParseTreeWalker walker = new ParseTreeWalker();
@@ -135,9 +137,14 @@ public class Parse {
 				options.setClassName(baseName);
 				cd.setTempClassName(baseName);
 				options.setParsingheader(false);
-				options.setOutputFileName(combinePathWithFileName(
-						directoryName, baseName + ".java"));
-				walker.walk(new ParserObjcListener(cd, options), tree);
+				String fName = outputFileName;
+				if (fName.length() == 0) {
+					fName = combinePathWithFileName(
+							directoryName, baseName + ".java");
+				}
+				options.setOutputFileName(fName);
+				
+				walker.walk(new ParserObjcListener(cd, tokens, options), tree);
 			}
 		}
 	}

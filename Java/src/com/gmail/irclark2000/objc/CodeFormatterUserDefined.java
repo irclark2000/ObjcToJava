@@ -10,9 +10,10 @@ public class CodeFormatterUserDefined {
 
 	/**
 	 * @param id
+	 * @param options
 	 * @return rewritten identifier
 	 */
-	public String identifierFormatter(String id) {
+	public String identifierFormatter(String id, ParseOptions options) {
 		if (id.equals("NSUTF8StringEncoding")) {
 			id = "\"UTF-8\"";
 		}
@@ -45,6 +46,15 @@ public class CodeFormatterUserDefined {
 		if (proto.contains("setHTTPMethod(")) {
 			proto = proto.replace("setHTTPMethod(", "setRequestMethod(");
 		}
+		if (proto.contains(".setHTTPBody(")) {
+			int index = proto.indexOf(".setHTTPBody(");
+			String arg1 = proto.substring(0, index);
+			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto.substring(index + 1));
+			
+			proto = "DataOutputStream wr = new DataOutputStream (" + arg1 + ".getOutputStream());\n";
+			proto += "wr.writeBytes(" + args.get(0) + ");\nwr.flush();\nwr.close();\n;";
+			proto +="";
+		}
 		if (proto.contains("NSURL.URLWithString(")) {
 			proto = proto.replace("NSURL.URLWithString(", "new URL(");
 		}
@@ -70,11 +80,12 @@ public class CodeFormatterUserDefined {
 					.substring(index));
 			String response = args.get(1);
 			response = response.substring(2);
-			proto =  "InputStream is = " + args.get(0) + ".connection.getInputStream();\n";
+			proto =  "InputStream is = " + args.get(0) + ".getInputStream();\n";
 			proto += "BufferedReader rd = new BufferedReader(new InputStreamReader(is));\n";
-			proto += "String line;\n" + response +  " new StringBuffer();\n";
+			proto += "String line;\n" + response +  " = new StringBuffer();\n";
 			proto += "while((line = rd.readLine()) != null) {\n";
-			proto += response + ".append(line);\n" + response + ".append(\"\r\")";
+			proto += response + ".append(line);\n" + response + ".append(\"\\r\");\n}\n";
+			proto += "rd.close()\n //reponse.toString();\n";
 		     
 		}
 		return proto;
