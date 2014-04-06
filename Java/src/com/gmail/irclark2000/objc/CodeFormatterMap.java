@@ -17,7 +17,7 @@ public class CodeFormatterMap {
 	
 	public String reformatConstructorCall(String call, ParseOptions options) {
 		String proto = String.format("%s", call);
-		String mapCall = "Map<String, " + options.getDirectoryObject() + ">";
+		String mapCall = "Map" + options.getDirectoryTypes();
 		if (proto.contains(mapCall + ".alloc().init(")) {
 			proto = "new Hash" + mapCall + "()";
 		}
@@ -33,7 +33,7 @@ public class CodeFormatterMap {
 	 */
 	public String reformatMapFunctions(String call, ParseOptions options) {
 		String proto = String.format("%s", call);
-		String mapType = "<String, " + options.getDirectoryObject() + ">";
+		String mapType = options.getDirectoryTypes();
 
 		if (proto.contains("setObjectforKey")) {
 			proto = proto.replace("setObjectforKey(", "put"

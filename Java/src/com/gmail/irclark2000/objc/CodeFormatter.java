@@ -39,7 +39,7 @@ public class CodeFormatter {
 			id = "String";
 		} else if (id.equals("NSDictionary")
 				|| id.equals("NSMutableDictionary")) {
-			id = "Map<String, " + options.getDirectoryObject() + ">";
+			id = "Map" + options.getDirectoryTypes();
 		} else if (id.equals("YES") || id.equals("TRUE")) {
 			id = "true";
 		} else if (id.equals("NO") || id.equals("FALSE")) {
@@ -128,6 +128,9 @@ public class CodeFormatter {
 	}
 
 	/**
+	 * Note that for constructor methods starting with init
+	 * a flag is set to true allowing some additional treatment if
+	 * smartConstructor is turned on
 	 * @param code
 	 *            the construction declaration
 	 * @param className
@@ -139,6 +142,7 @@ public class CodeFormatter {
 	public String generateConstructor(String code, String className,
 			ParseOptions options) {
 		String proto = String.format("%s", code);
+		options.setConstructorMethod(false);
 		String[] parts = proto.split(" ");
 		for (String signature : options.getConstructorSignatures()) {
 			if (parts[1].startsWith(signature)) {
@@ -148,8 +152,12 @@ public class CodeFormatter {
 				}
 				if (parts[1].equals("init")) {
 					proto = cName + "()";
+					options.setConstructorMethod(true);
 				} else {
 					int index = signature.length();
+					if (signature.startsWith("init")) {
+						options.setConstructorMethod(true);
+					}
 					if (!proto.contains("(")) {
 						proto = cName + "()";
 					} else {
@@ -211,6 +219,9 @@ public class CodeFormatter {
 
 		if (proto.contains(".autorelease()")) {
 			proto = proto.replace(".autorelease()", "");
+		}
+		if (proto.contains(".retain()")) {
+			proto = proto.replace(".retain()", "");
 		}
 		if (proto.contains("NSNull.null()")) {
 			proto = proto.replace("NSNull.null()", "null");
@@ -348,6 +359,12 @@ public class CodeFormatter {
 	 * @return array of args from function call
 	 */
 	public static ArrayList<String> getFunctionArguments(String call) {
+		return getEnclosedArguments(call, '(');
+	}
+	
+	private static ArrayList<String> getEnclosedArguments(String call, char openBrace) {
+		char closeBrace = ')';
+		if (openBrace == '{') closeBrace = '}';
 		ArrayList<String> args = new ArrayList<String>();
 		boolean insideQuote = false;
 		boolean insideSingleQuote = false;
@@ -355,7 +372,7 @@ public class CodeFormatter {
 		// move to starting paren
 		int start = 0;
 		String arg;
-		while (call.charAt(start) != '(')
+		while (call.charAt(start) != openBrace)
 			start++;
 		int end = start + 1;
 		while (true) {
@@ -367,13 +384,13 @@ public class CodeFormatter {
 						args.add(arg.trim());
 						start = end;
 					}
-				} else if (c == '(') {
+				} else if (c == openBrace) {
 					parenCount++;
 				} else if (c == '\'') {
 					insideSingleQuote = !insideSingleQuote;
 				} else if (c == '\"') {
 					insideQuote = !insideQuote;
-				} else if (c == ')') {
+				} else if (c == closeBrace) {
 					parenCount--;
 					if (parenCount < 0) {
 						arg = call.substring(start + 1, end);
@@ -396,7 +413,33 @@ public class CodeFormatter {
 				end++;
 			}
 		}
-
 		return args;
+	}
+
+	/**
+	 * methDef must be pre-screen to be from an init-based
+	 * constructor.  Removes return values, and if(self)
+	 * stuff that came from IOS
+	 * @param methDef code to convert
+	 * @return code with IOS specific stuff removed
+	 */
+	public String applyConstructorFixes(String methDef) {
+		String code = String.format("%s", methDef);
+		code = code.replace("this = super(", "super(");
+		code = code.replace("return this;", "");
+		if (code.contains("if(this != null){")) {
+			String anIf = "if(this != null){";
+			int index = code.indexOf(anIf) + anIf.length() - 1;
+			ArrayList<String> contents = getEnclosedArguments(code.substring(index), '{');
+			if (contents.size() == 1) {
+				int start = index + contents.get(0).length();
+				while (code.charAt(start) != '}') {
+					start++;
+				}
+				code = code.substring(0, code.indexOf(anIf)) + contents.get(0).trim()
+						+ code.substring(start+ 1);
+			}
+		}
+		return code;
 	}
 }

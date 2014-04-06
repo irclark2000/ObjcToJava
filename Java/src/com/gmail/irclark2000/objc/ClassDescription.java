@@ -277,6 +277,35 @@ public class ClassDescription {
 		}
 
 		/**
+		 * @return constructor definition collection
+		 */
+		public ArrayList<String> getConstructor_definitions() {
+			return constructor_definitions;
+		}
+
+		/**
+		 * @param constructor_definition
+		 */
+		public void addConstructor_definition(String constructor_definition) {
+			this.constructor_definitions.add(constructor_definition);
+		}
+
+		/**
+		 * @param definitions
+		 */
+		public void addConstructor_definitions(ArrayList<String> definitions) {
+			for (String def : definitions) {
+				this.addConstructor_definition(def);
+			}
+		}
+		/**
+		 * 
+		 */
+		public void clearConstructor_definition() {
+			this.constructor_definitions.clear();
+		}
+
+		/**
 		 * @return function definition collection
 		 */
 		public ArrayList<String> getFunction_definitions() {
@@ -374,6 +403,7 @@ public class ClassDescription {
 		private ArrayList<String> variables;
 		private ArrayList<String> properties;
 		private ArrayList<String> method_definitions;
+		private ArrayList<String> constructor_definitions;
 		private ArrayList<String> function_definitions;
 		private ArrayList<String> method_declarations;
 		private ArrayList<String> function_declarations;
@@ -392,6 +422,7 @@ public class ClassDescription {
 			dynamic = new ArrayList<String>();
 			enums = new ArrayList<String>();
 			method_definitions = new ArrayList<String>();
+			constructor_definitions = new ArrayList<String>();
 			function_definitions = new ArrayList<String>();
 			method_declarations = new ArrayList<String>();
 			function_declarations = new ArrayList<String>();

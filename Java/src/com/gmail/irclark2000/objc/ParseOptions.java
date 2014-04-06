@@ -11,12 +11,15 @@ public class ParseOptions {
 	private ArrayList<String> constructorSignatures;
 	private String outputFileName;
 	private String className;
-	private String directoryObject;
+	private String directoryTypes;
 	private boolean parsingheader;
+	private boolean smartConstructorGeneration;
+	private boolean constructor;
 	
 	ParseOptions () {
 		constructorSignatures = new ArrayList<String>();
-		directoryObject = "String";
+		setDirectoryTypes("<String, String>");
+		setSmartConstructorGeneration(true);
 	}
 	
 	/**
@@ -70,17 +73,45 @@ public class ParseOptions {
 	}
 
 	/**
-	 * @return the directoryObject
+	 * @return the smartConstructorGeneration
 	 */
-	public String getDirectoryObject() {
-		return directoryObject;
+	public boolean useSmartConstructorGeneration() {
+		return smartConstructorGeneration;
 	}
 
 	/**
-	 * @param directoryObject the directoryObject to set
+	 * @param smartConstructorGeneration the smartConstructorGeneration to set
 	 */
-	public void setDirectoryObject(String directoryObject) {
-		this.directoryObject = directoryObject;
+	public void setSmartConstructorGeneration(boolean smartConstructorGeneration) {
+		this.smartConstructorGeneration = smartConstructorGeneration;
+	}
+
+	/**
+	 * @return the directoryTypes
+	 */
+	public String getDirectoryTypes() {
+		return directoryTypes;
+	}
+
+	/**
+	 * @param directoryTypes the directoryTypes to set
+	 */
+	public void setDirectoryTypes(String directoryTypes) {
+		this.directoryTypes = directoryTypes;
+	}
+
+	/**
+	 * @return the constructor
+	 */
+	public boolean isConstructorMethod() {
+		return constructor;
+	}
+
+	/**
+	 * @param constructor the constructor to set
+	 */
+	public void setConstructorMethod(boolean constructor) {
+		this.constructor = constructor;
 	}
 
 }

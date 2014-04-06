@@ -733,8 +733,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String cName = (gClassName.length() == 0) ? CLASSNAME_MARKER
 				: gClassName;
 		methDef = codeFormat.generateConstructor(methDef, cName, options);
-		if (selector.startsWith("init")) {
-		}
+		boolean isInitConstructor = options.isConstructorMethod();
 		if (ctx.init_declarator_list() != null) {
 			methDef += getCode(ctx.init_declarator_list());
 		}
@@ -742,6 +741,9 @@ public class ParserObjcListener extends ObjCBaseListener {
 			methDef += "()";
 		}
 		methDef += getCode(ctx.compound_statement());
+		if (isInitConstructor && options.useSmartConstructorGeneration()) {
+			methDef = codeFormat.applyConstructorFixes(methDef);
+		}
 		setCode(ctx, methDef);
 	}
 
