@@ -1,5 +1,8 @@
 package com.gmail.irclark2000.objc;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * @author Isaac Clark Handles transforming of NSDictionary functions to Java
@@ -8,6 +11,17 @@ package com.gmail.irclark2000.objc;
  */
 
 public class CodeFormatterMap {
+	
+	@SuppressWarnings("serial")
+	static final Map<String , String> SIMPLEMAPFUNCTIONS = new HashMap<String , String>() {
+	{
+		put("setObjectforKey(", "put" + CodeFormatter.REVERSE_ARGS_MARKER + "(");
+		put("removeObjectForKey(", "remove(");
+		put("removeAllObjects(", "clear(");
+		put("objectForKey(", "get(");
+		put("allKeys(", "keySet(");
+	}};
+
 	
 	/**
 	 * @param call
@@ -27,6 +41,7 @@ public class CodeFormatterMap {
 
 
 	/**
+	 * Make sure to fix any reversed arguments after this
 	 * @param call using objective C NSDictionary method
 	 * @param options code formatting options
 	 * @return Java equivalent function call using Map
@@ -34,23 +49,8 @@ public class CodeFormatterMap {
 	public String reformatMapFunctions(String call, ParseOptions options) {
 		String proto = String.format("%s", call);
 		String mapType = options.getDirectoryTypes();
+		proto = CodeFormatter.makeSimpleMethodSubtitutions(SIMPLEMAPFUNCTIONS, proto);
 
-		if (proto.contains("setObjectforKey")) {
-			proto = proto.replace("setObjectforKey(", "put"
-					+ CodeFormatter.REVERSE_ARGS_MARKER + "(");
-		}
-		if (proto.contains("removeObjectForKey")) {
-			proto = proto.replace("removeObjectForKey(", "remove(");
-		}
-		if (proto.contains("removeAllObjects(")) {
-			proto = proto.replace("removeAllObjects(", "clear(");
-		}
-		if (proto.contains("objectForKey")) {
-			proto = proto.replace("objectForKey(", "get(");
-		}
-		if (proto.contains("allKeys")) {
-			proto = proto.replace("allKeys(", "keySet(");
-		}		
 		if (proto.contains("Map" + mapType + ".dictionary()")) {
 			proto = proto.replace("Map" + mapType + ".dictionary", "new HashMap" + mapType);
 		}

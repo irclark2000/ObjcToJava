@@ -658,15 +658,16 @@ public class ParserObjcListener extends ObjCBaseListener {
 	 * @returns a class declaration holder for the given classname
 	 */
 	private ClassDeclaration chooseMapAndDeclaration(String className) {
-		return chooseMapAndDeclaration(classDescription, className, options.isParsingheader());
+		return chooseMapAndDeclaration(classDescription, className,
+				options.isParsingheader());
 	}
 
 	// used for definitions which can appear in either .h or .m files
 	/**
-	 * @param classDesc 
+	 * @param classDesc
 	 * @param className
-	 * @param options 
-	 * @return 
+	 * @param options
+	 * @return
 	 * @returns a class declaration holder for the given classname
 	 */
 	public static ClassDeclaration chooseMapAndDeclaration(
@@ -1545,9 +1546,37 @@ public class ParserObjcListener extends ObjCBaseListener {
 			ObjCParser.Assignment_expressionContext ctx) {
 		String aExp = getCode(ctx.conditional_expression());
 		if (ctx.assignment_operator() != null) {
-			aExp += " " + ctx.assignment_operator().getText() + " "
-					+ getCode(ctx.assignment_expression());
+			// make attempt to remove pointer asterisk
+			String op = ctx.assignment_operator().getText();
+			String assign = getCode(ctx.assignment_expression());
+			String[] parts = aExp.split("\\*");
+			
+			if (op.equals("=") && parts.length == 2) {
+				aExp = parts[0].trim() + " " + parts[1].trim() + " = " 
+						+ assign;
+			} else if (op.equals("=") && aExp.endsWith("()")) {
+				// probably a messed up setter written as a getter equals
+				String [] dotParts = aExp.split("\\.");
+				if (dotParts.length > 1 && dotParts[dotParts.length-1].startsWith("get")) {
+					// convert to setter!!
+					for (int i=0; i < dotParts.length -1; i++) {
+					   if (i == 0) {
+						   aExp = dotParts[0].trim();
+					   } else {
+						   aExp += "." + dotParts[i].trim();
+					   }
+					}
+					String ending = dotParts[dotParts.length-1];
+					aExp += ".s" + ending.substring(1, ending.length()-2) + "(" +
+							assign + ")";
+				} else {
+					aExp += " " + op + " " + assign;
+				}
+			} else {
+				aExp += " " + op + " " + assign;
+			}
 		}
+
 		setCode(ctx, aExp);
 	}
 

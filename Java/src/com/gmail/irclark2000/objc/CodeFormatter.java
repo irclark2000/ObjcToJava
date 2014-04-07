@@ -2,7 +2,9 @@ package com.gmail.irclark2000.objc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Isaac Clark Reformats code as needed after parsing
@@ -20,8 +22,36 @@ public class CodeFormatter {
 	private CodeFormatterString stringFormat = new CodeFormatterString();
 	private CodeFormatterArrayList arrayFormat = new CodeFormatterArrayList();
 	private CodeFormatterMap dictionaryFormat = new CodeFormatterMap();
-	private CodeFormatterUserDefined userDefinedFormat = new CodeFormatterUserDefined();
+	private CodeFormatterUserDefined userDefinedFormat = 
+			new CodeFormatterUserDefined();
+	
+	@SuppressWarnings("serial")
+	static final Map<String , String> SIMPLESTRINGS = new HashMap<String , String>() {
+	{
+		put("NSError", "Data");
+		put("NSString", "String");
+		put("NSMutableString", "String");
+		put("YES", "true");
+		put("TRUE", "true");
+		put("NO", "false");
+		put("FALSE", "false" );
+		put("NSObject", "Object");
+		put("self", "this");
+		put("nil", "null");
+		put("NULL", "null");
+		put("IBAction", "void");
+		put("IBOutlet", "");
 
+	}};
+	@SuppressWarnings("serial")
+	static final Map<String , String> SIMPLEFUNCTIONS = new HashMap<String , String>() {
+	{
+		put(".autorelease()", "");
+		put(".retain()", "");
+		put("NSNull.null()", "null");
+
+	}};
+	
 	CodeFormatter() {
 		constructorSignalsList = new ArrayList<String>();
 		constructorSignalsList.add("init");
@@ -32,32 +62,48 @@ public class CodeFormatter {
 	 * @param options
 	 * @return id after reformatting to Java conventions
 	 */
+	
 	public String identifierFormatter(String id, ParseOptions options) {
-		if (id.equals("NSError")) {
-			id = "Data";
-		} else if (id.equals("NSString") || id.equals("NSMutableString")) {
-			id = "String";
-		} else if (id.equals("NSDictionary")
+		id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
+		if (id.equals("NSDictionary")
 				|| id.equals("NSMutableDictionary")) {
 			id = "Map" + options.getDirectoryTypes();
-		} else if (id.equals("YES") || id.equals("TRUE")) {
-			id = "true";
-		} else if (id.equals("NO") || id.equals("FALSE")) {
-			id = "false";
-		} else if (id.equals("NSObject")) {
-			id = "Object";
-		} else if (id.equals("self")) {
-			id = "this";
-		} else if (id.equals("nil")) {
-			id = "null";
-		} else if (id.equals("bool")) {
-			id = "boolean";
-		}
+		} 
 		id = arrayFormat.identifierFormatter(id, options);
 		id = userDefinedFormat.identifierFormatter(id, options);
 		return id;
 	}
 
+	/**
+	 * @param map mapping of identifier to target
+	 * @param ID to be substituted for
+	 * @return re-mapped identifier
+	 */
+	
+	public static String makeSimpleIDSubtitutions (Map<String , String> map, String ID) {
+		String match = map.get(ID);
+		if (match != null) {
+			ID = match;
+		}
+		return ID;
+		
+	}
+	
+	/**
+	 * @param map keys = signatures; values = replacements
+	 * @param code function call
+	 * @return rewritten as needed
+	 */
+	public static String makeSimpleMethodSubtitutions (Map<String , String> map, String code) {
+		for (String signature : map.keySet()) {
+			if (code.contains(signature)) {
+				code = code.replace(signature, map.get(signature));
+				break;
+			}
+		}
+		return code;
+	}
+	
 	/**
 	 * @param cd
 	 *            class description holder,
@@ -215,17 +261,9 @@ public class CodeFormatter {
 		proto = arrayFormat.reformatArrayListFunctions(proto);
 		proto = dictionaryFormat.reformatMapFunctions(proto, options);
 		proto = userDefinedFormat.reformatMethodCall(proto, options);
+		proto = makeSimpleMethodSubtitutions(SIMPLEFUNCTIONS, proto);
 		proto = fixReverseArgs(proto);
 
-		if (proto.contains(".autorelease()")) {
-			proto = proto.replace(".autorelease()", "");
-		}
-		if (proto.contains(".retain()")) {
-			proto = proto.replace(".retain()", "");
-		}
-		if (proto.contains("NSNull.null()")) {
-			proto = proto.replace("NSNull.null()", "null");
-		}
 		if (proto.contains("isKindOf(")) {
 			proto = isKindOf(proto);
 		}
@@ -241,7 +279,6 @@ public class CodeFormatter {
 	}
 
 	String fixReverseArgs(String fCall) {
-		// FIXME not handling case having conditional operator argument
 		String call = String.format("%s", fCall);
 		int start = call.indexOf(REVERSE_ARGS_MARKER);
 		if (start != -1) {
@@ -427,6 +464,7 @@ public class CodeFormatter {
 		String code = String.format("%s", methDef);
 		code = code.replace("this = super(", "super(");
 		code = code.replace("return this;", "");
+		code = code.replace("this = new this(", "this(");
 		if (code.contains("if(this != null){")) {
 			String anIf = "if(this != null){";
 			int index = code.indexOf(anIf) + anIf.length() - 1;
@@ -438,6 +476,7 @@ public class CodeFormatter {
 				}
 				code = code.substring(0, code.indexOf(anIf)) + contents.get(0).trim()
 						+ code.substring(start+ 1);
+				code = code.replaceAll("\n[\n]+", "\n");
 			}
 		}
 		return code;

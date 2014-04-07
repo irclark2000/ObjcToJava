@@ -1,6 +1,8 @@
 package com.gmail.irclark2000.objc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Isaac Clark
@@ -8,6 +10,19 @@ import java.util.ArrayList;
  *
  */
 public class CodeFormatterString {
+	static final Map<String , String> SIMPLESTRINGFUNCTIONS = new HashMap<String , String>() {
+	{
+		put("substringToIndex(", "substring(0, ");
+		put("substringFromIndex(", "substring(");
+		put("isEqualToString(", "equals(");
+		put("hasPrefix(", "startsWith(");
+		put("hasSuffix(", "endsWith(");
+		put("String.stringWithString(", "String.format(\"%s\", ");
+		put("characterAtIndex(", "charAt(");
+		put("uppercaseString(", "toUpper(");
+		put("lowercaseString(", "toLower(");
+	}};
+
 
 	/**
 	 * @param call using objective C NSString method
@@ -15,21 +30,7 @@ public class CodeFormatterString {
 	 */
 	public String reformatStringFunctions (String call) {
 		String proto = String.format("%s", call);
-		if (proto.contains("substringToIndex")) {
-			proto = proto.replace("substringToIndex(", "substring(0, ");
-		}
-		if (proto.contains("substringFromIndex")) {
-			proto = proto.replace("substringFromIndex(", "substring(");
-		}
-		if (proto.contains("isEqualToString")) {
-			proto = proto.replace("isEqualToString(", "equals(");
-		}
-		if (proto.contains("hasPrefix")) {
-			proto = proto.replace("hasPrefix(", "startsWith(");
-		}
-		if (proto.contains("hasSuffix")) {
-			proto = proto.replace("hasSuffix(", "endsWith(");
-		}
+		proto = CodeFormatter.makeSimpleMethodSubtitutions(SIMPLESTRINGFUNCTIONS, proto);
 		if (proto.contains("String.stringWithFormat(")) {
 			String aCall = "String.stringWithFormat(";
 			int index = proto.indexOf(aCall) + aCall.length() - 1;
@@ -41,20 +42,8 @@ public class CodeFormatterString {
 			}
 			proto+= ")";
 		}
-		if (proto.contains("String.stringWithString(")) {
-			proto = proto.replace("String.stringWithString(", "String.format(\"%s\", " );
-		}
-		if (proto.contains("characterAtIndex(")) {
-			proto = proto.replace("characterAtIndex(", "charAt(" );
-		}
-		if (proto.contains("uppercaseString(")) {
-			proto = proto.replace("uppercaseStrint(", "toUpper(" );
-		}
-		if (proto.contains("lowercaseString(")) {
-			proto = proto.replace("lowercaseStrint(", "toLower(" );
-		}
 		return proto;
-	};
+	}
 	
 	String fixFormatString(String str) {
 		StringBuffer fmt = new StringBuffer (str);

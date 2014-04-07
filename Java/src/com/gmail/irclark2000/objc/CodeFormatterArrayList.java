@@ -1,6 +1,8 @@
 package com.gmail.irclark2000.objc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Isaac Clark Handles transforming of NSArray functions to Java
@@ -9,6 +11,13 @@ import java.util.ArrayList;
  */
 
 public class CodeFormatterArrayList {
+	@SuppressWarnings("serial")
+	static final Map<String , String> SIMPLEARRAYSTRINGS = new HashMap<String , String>() {{
+		put("NSArray", "ArrayList<?>");
+		put("NSMutableArray", "ArrayList<?>");
+		put("NSSet", "Set<?>");
+		put("NSMutableSet", "Set<?>");
+	}};
 
 	/**
 	 * @param call
@@ -97,12 +106,7 @@ public class CodeFormatterArrayList {
 	 */
 
 	public String identifierFormatter(String id, ParseOptions options) {
-		if (id.equals("NSArray") || id.equals("NSMutableArray")) {
-			id = "ArrayList<?>";
-		}
-		if (id.equals("NSSet") || id.equals("NSMutableSet")) {
-			id = "Set<?>";
-		}
+		id = CodeFormatter.makeSimpleIDSubtitutions(SIMPLEARRAYSTRINGS, id);
 		return id;
 	}
 
