@@ -463,15 +463,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 		ArrayList<String> codeParts = new ArrayList<String>();
 
 		gClassName = cName;
-		String categoryName;
+		String categoryName = "";
 		String myClass = "public class " + cName + CATEGORY_MARKER;
 		myClass = myClass + " {\n";
-		ClassDescription.ClassDeclaration cDec = null;
-		if (ctx.implementation_definition_list() != null) {
-			cDec = getDeclaration(ctx.implementation_definition_list());
-		}
 		if (ctx.category_name() != null) {
-			categoryName = getCode(ctx.category_name());
+			categoryName += getCode(ctx.category_name());
+		}
+		if (categoryName.length() > 0) {
+			// make warning stop
 		}
 		codeParts.add(myClass);
 		myClass = "";
@@ -547,7 +546,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitCategory_interface(ObjCParser.Category_interfaceContext ctx) {
 		String code = ctx.getText();
 		String.format("%s", code);
-		String decs = "";
+		//String decs = "";
 		String className = getCode(ctx.class_name());
 		@SuppressWarnings("unused")
 		String categoryName = "";
@@ -555,7 +554,6 @@ public class ParserObjcListener extends ObjCBaseListener {
 		if (ctx.category_name() != null) {
 			categoryName = getCode(ctx.category_name());
 		}
-
 	}
 
 	@Override
@@ -666,9 +664,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 	/**
 	 * @param classDesc
 	 * @param className
-	 * @param options
-	 * @return
-	 * @returns a class declaration holder for the given classname
+	 * @param parsingHeader true if we are parsing a header file  
+	 * @return a class declaration holder for the given class name
 	 */
 	public static ClassDeclaration chooseMapAndDeclaration(
 			ClassDescription classDesc, String className, boolean parsingHeader) {
@@ -1220,10 +1217,17 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitGetter_call(ObjCParser.Getter_callContext ctx) {
 		String message = ctx.getText();
 		String.format("%s", message);
-		String[] parts = getCode(ctx.dotidentifier()).split(":");
-		parts[1] = parts[1].substring(0, 1).toUpperCase()
-				+ parts[1].substring(1);
-		String call = String.format("%s.get%s()", parts[0], parts[1]);
+		String[] parts = getCode(ctx.dotidentifier()).split("\\.");
+		String call = null;
+		for (int i=0; i < parts.length; i++) {
+			if (i == 0) {
+				call = parts[0];
+			} else if (i < parts.length-2) {
+				call += "." + parts[i];
+			} else {
+				call += ".get" + parts[i].substring(0, 1).toUpperCase() + parts[i].substring(1);  
+			}
+		}
 		setCode(ctx, call);
 	}
 
@@ -1243,9 +1247,15 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitDotidentifier(ObjCParser.DotidentifierContext ctx) {
 		String message = ctx.getText();
 		String.format("%s", message);
+		String code = null;
 		String[] parts = ctx.getText().split("\\.");
-		String code = String.format("%s:%s",
-				codeFormat.identifierFormatter(parts[0], options), parts[1]);
+		for (String part : parts) {
+			if (code == null) {
+				code = codeFormat.identifierFormatter(part, options);
+			} else {
+				code += "." + part + "()";
+			}
+		}
 		setCode(ctx, code);
 	}
 
@@ -1272,6 +1282,9 @@ public class ParserObjcListener extends ObjCBaseListener {
 			mExpression = codeFormat.reformatMethodCall(mExpression, options);
 		} else {
 			// mExpression = getCode(ctx.getter_call());
+		}
+		if (ctx.dotidentifier() != null) {
+			mExpression += "." + getCode(ctx.dotidentifier());
 		}
 		setCode(ctx, mExpression);
 	}
@@ -1522,8 +1535,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	@Override
 	public void exitSelector(ObjCParser.SelectorContext ctx) {
-		String selector = getCode(ctx.getChild(0));
-
+		String selector = null;
+		
+		if (ctx.dotidentifier() != null) {
+			selector = getCode(ctx.getChild(0));
+		}
+		else {
+			selector = getCode(ctx.getChild(0));
+		}
 		setCode(ctx, selector);
 	}
 
@@ -1544,40 +1563,16 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitAssignment_expression(
 			ObjCParser.Assignment_expressionContext ctx) {
-		String aExp = getCode(ctx.conditional_expression());
+		String conditional = getCode(ctx.conditional_expression());
+		String op = null;
+		String assign = null;
 		if (ctx.assignment_operator() != null) {
 			// make attempt to remove pointer asterisk
-			String op = ctx.assignment_operator().getText();
-			String assign = getCode(ctx.assignment_expression());
-			String[] parts = aExp.split("\\*");
-			
-			if (op.equals("=") && parts.length == 2) {
-				aExp = parts[0].trim() + " " + parts[1].trim() + " = " 
-						+ assign;
-			} else if (op.equals("=") && aExp.endsWith("()")) {
-				// probably a messed up setter written as a getter equals
-				String [] dotParts = aExp.split("\\.");
-				if (dotParts.length > 1 && dotParts[dotParts.length-1].startsWith("get")) {
-					// convert to setter!!
-					for (int i=0; i < dotParts.length -1; i++) {
-					   if (i == 0) {
-						   aExp = dotParts[0].trim();
-					   } else {
-						   aExp += "." + dotParts[i].trim();
-					   }
-					}
-					String ending = dotParts[dotParts.length-1];
-					aExp += ".s" + ending.substring(1, ending.length()-2) + "(" +
-							assign + ")";
-				} else {
-					aExp += " " + op + " " + assign;
-				}
-			} else {
-				aExp += " " + op + " " + assign;
-			}
+			op = ctx.assignment_operator().getText();
+			assign = getCode(ctx.assignment_expression());
 		}
-
-		setCode(ctx, aExp);
+		String stmt = codeFormat.assignment_expression (conditional, op, assign);
+		setCode(ctx, stmt);
 	}
 
 	@Override
@@ -2102,6 +2097,25 @@ public class ParserObjcListener extends ObjCBaseListener {
 		this.headerDeclarations = classDescription.getHeaders();
 		this.classDeclarations = classDescription.getmFiles();
 	}
+
+	@Override public void exitDefine_statement(ObjCParser.Define_statementContext ctx) { 
+		String code = codeFormat.convertDefineToAssignment(ctx.identifier().getText(), getCode(ctx.constant_expression()));
+	}
+
+	@Override public void exitPreprocessor_declaration(ObjCParser.Preprocessor_declarationContext ctx) { 
+		String directive = ctx.getChild(0).getText();
+		String expression = null;
+		if (ctx.getChild(1) != null) {
+			if (ctx.expression() != null) {
+				expression = getCode (ctx.expression());
+			} else {
+				expression = ctx.getChild(1).getText();
+			}
+		}
+		String code = codeFormat.preProcessorInstructions(directive, expression);
+		setCode(ctx, code);
+	}
+
 
 	private void writeOutput(String fileName, String code) {
 		try {

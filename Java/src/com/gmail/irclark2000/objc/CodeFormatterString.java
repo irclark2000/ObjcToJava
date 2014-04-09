@@ -10,6 +10,7 @@ import java.util.Map;
  *
  */
 public class CodeFormatterString {
+	@SuppressWarnings("serial")
 	static final Map<String , String> SIMPLESTRINGFUNCTIONS = new HashMap<String , String>() {
 	{
 		put("substringToIndex(", "substring(0, ");

@@ -41,8 +41,8 @@ public class CodeFormatter {
 		put("NULL", "null");
 		put("IBAction", "void");
 		put("IBOutlet", "");
-
 	}};
+	
 	@SuppressWarnings("serial")
 	static final Map<String , String> SIMPLEFUNCTIONS = new HashMap<String , String>() {
 	{
@@ -480,5 +480,66 @@ public class CodeFormatter {
 			}
 		}
 		return code;
+	}
+
+	/**
+	 * @param conditional left side of assignment
+	 * @param opCode operation
+	 * @param assignExpression rightSide of assignment
+	 * @return assigment statement
+	 */
+	public String assignment_expression(String conditional, String opCode,
+			String assignExpression) {
+		String statement = conditional;
+		if (opCode != null) {
+			// make sure left side does not contain multiplication
+			String[] parts = statement.split("\\*");
+			// found multiplication left of equal sign?
+			if (parts.length == 2 && opCode.endsWith("=")) { 
+				// get rid of "*" as it is likely pointer representation
+				statement = parts[0].trim() + " " + parts[1].trim() + " = " 
+						+ assignExpression;
+
+			} 
+			// check for a getter is present where a setter is required
+			else if (opCode.equals("=") && statement.endsWith("()")) {
+				// double check for a getter
+				String [] dotParts = statement.split("\\.");
+				// double check for a getter
+				if (dotParts.length > 1 && dotParts[dotParts.length-1].startsWith("get")) {
+					// convert to setter!!
+					for (int i=0; i < dotParts.length -1; i++) {
+					   if (i == 0) {
+						   statement = dotParts[0].trim();
+					   } else {
+						   statement += "." + dotParts[i].trim();
+					   }
+					}
+					String ending = dotParts[dotParts.length-1];
+					// change statement to setter
+					statement += ".s" + ending.substring(1, ending.length()-2) + "(" +
+							assignExpression + ")";
+				} else { // not a getter use normal code  probably wrong!!
+					statement += " " + opCode + " " + assignExpression;
+				}
+			} else {  // normal assignment
+				statement += " " + opCode + " " + assignExpression;
+			}
+		}
+		return statement;
+	}
+
+	public String preProcessorInstructions(String directive, String expression) {
+		return "";
+	}
+
+	public String convertDefineToAssignment(String text, String code) {
+		String stmt = text + " = " + code + ";";
+		if (code.charAt(0) == '\"') {
+			stmt = "String " + stmt;
+		} else {
+			stmt = "Number " + stmt; 
+		}
+		return stmt;
 	}
 }

@@ -36,12 +36,16 @@ comment
 preprocessor_declaration:
 IMPORT
 | INCLUDE
-| '#define' macro_specification
+|  define_statement
 | '#ifdef' expression
 | '#if' expression
 | '#undef' expression
 | '#ifndef' expression
 | '#endif';
+
+define_statement :
+ '#define' identifier constant_expression 
+;
 
 macro_specification: '.+';
 
@@ -195,7 +199,7 @@ keyword_declarator:
 	selector? ':' method_type* identifier;
 
 selector:
-identifier;
+identifier | dotidentifier;
 
 method_type: '(' type_name ')';
 
@@ -275,7 +279,7 @@ unsupported_instruction :
 string_constant:  STRING_LITERAL  | CSTRING_LITERAL;
             
 message_expression:
-	'[' receiver message_selector ']'
+	'[' receiver message_selector ']' ('.' dotidentifier)? 
 	;
 
 receiver:
@@ -554,7 +558,7 @@ postfix_expression_complete :
    ;
 
 comment :
-  COMMENT | LINE_COMMENT | preprocessor_declaration
+  COMMENT | LINE_COMMENT 
   ;
 argument_expression_list
   : assignment_expression (',' assignment_expression)* ;
@@ -564,7 +568,7 @@ identifier : IDENTIFIER;
 constant : DECIMAL_LITERAL | HEX_LITERAL | OCTAL_LITERAL | CHARACTER_LITERAL | FLOATING_POINT_LITERAL;
 
 DOTIDENTIFIER :
- IDENTIFIER '.' IDENTIFIER
+  IDENTIFIER '.' IDENTIFIER ('.' IDENTIFIER)*
 ;
 
 IDENTIFIER

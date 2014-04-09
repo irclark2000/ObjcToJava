@@ -88,11 +88,11 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterType_name(ObjCParser.Type_nameContext ctx) { }
 	@Override public void exitType_name(ObjCParser.Type_nameContext ctx) { }
 
-	@Override public void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
-	@Override public void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
-
 	@Override public void enterMethod_definition(ObjCParser.Method_definitionContext ctx) { }
 	@Override public void exitMethod_definition(ObjCParser.Method_definitionContext ctx) { }
+
+	@Override public void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
+	@Override public void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
 
 	@Override public void enterForcomplete2(ObjCParser.Forcomplete2Context ctx) { }
 	@Override public void exitForcomplete2(ObjCParser.Forcomplete2Context ctx) { }
@@ -102,6 +102,9 @@ public class ObjCBaseListener implements ObjCListener {
 
 	@Override public void enterParameter_list(ObjCParser.Parameter_listContext ctx) { }
 	@Override public void exitParameter_list(ObjCParser.Parameter_listContext ctx) { }
+
+	@Override public void enterDefine_statement(ObjCParser.Define_statementContext ctx) { }
+	@Override public void exitDefine_statement(ObjCParser.Define_statementContext ctx) { }
 
 	@Override public void enterInstance_decl(ObjCParser.Instance_declContext ctx) { }
 	@Override public void exitInstance_decl(ObjCParser.Instance_declContext ctx) { }
@@ -481,11 +484,11 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterSelector_expression(ObjCParser.Selector_expressionContext ctx) { }
 	@Override public void exitSelector_expression(ObjCParser.Selector_expressionContext ctx) { }
 
-	@Override public void enterDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx) { }
-	@Override public void exitDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx) { }
-
 	@Override public void enterDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx) { }
 	@Override public void exitDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx) { }
+
+	@Override public void enterDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx) { }
+	@Override public void exitDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx) { }
 
 	@Override public void enterSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx) { }
 	@Override public void exitSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx) { }

@@ -85,11 +85,11 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterType_name(ObjCParser.Type_nameContext ctx);
 	void exitType_name(ObjCParser.Type_nameContext ctx);
 
-	void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
-	void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
-
 	void enterMethod_definition(ObjCParser.Method_definitionContext ctx);
 	void exitMethod_definition(ObjCParser.Method_definitionContext ctx);
+
+	void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
+	void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
 
 	void enterForcomplete2(ObjCParser.Forcomplete2Context ctx);
 	void exitForcomplete2(ObjCParser.Forcomplete2Context ctx);
@@ -99,6 +99,9 @@ public interface ObjCListener extends ParseTreeListener {
 
 	void enterParameter_list(ObjCParser.Parameter_listContext ctx);
 	void exitParameter_list(ObjCParser.Parameter_listContext ctx);
+
+	void enterDefine_statement(ObjCParser.Define_statementContext ctx);
+	void exitDefine_statement(ObjCParser.Define_statementContext ctx);
 
 	void enterInstance_decl(ObjCParser.Instance_declContext ctx);
 	void exitInstance_decl(ObjCParser.Instance_declContext ctx);
@@ -478,11 +481,11 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterSelector_expression(ObjCParser.Selector_expressionContext ctx);
 	void exitSelector_expression(ObjCParser.Selector_expressionContext ctx);
 
-	void enterDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx);
-	void exitDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx);
-
 	void enterDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx);
 	void exitDeclarator_suffix(ObjCParser.Declarator_suffixContext ctx);
+
+	void enterDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx);
+	void exitDeclaration_minus_semi(ObjCParser.Declaration_minus_semiContext ctx);
 
 	void enterSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx);
 	void exitSimple_type_specifier(ObjCParser.Simple_type_specifierContext ctx);
