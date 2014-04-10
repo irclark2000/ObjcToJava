@@ -56,5 +56,18 @@ public class CodeFormatterMap {
 		}
 		return proto;
 	}
+	/**
+	 * @param id
+	 * @param options
+	 * @return id after reformatting to Java conventions
+	 */
+
+	public String identifierFormatter(String id, ParseOptions options) {
+		if (id.equals("NSDictionary")
+				|| id.equals("NSMutableDictionary")) {
+			id = "Map" + options.getDirectoryTypes();
+		} 
+		return id;
+	}
 
 }

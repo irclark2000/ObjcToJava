@@ -10,6 +10,14 @@ import java.util.Map;
  *
  */
 public class CodeFormatterString {
+	
+	@SuppressWarnings("serial")
+	static final Map<String , String> SIMPLESTRINGSTRINGS = new HashMap<String , String>() {
+	{
+		put("NSString", "String");
+		put("NSMutableString", "String");
+	}};
+
 	@SuppressWarnings("serial")
 	static final Map<String , String> SIMPLESTRINGFUNCTIONS = new HashMap<String , String>() {
 	{
@@ -24,6 +32,17 @@ public class CodeFormatterString {
 		put("lowercaseString(", "toLower(");
 	}};
 
+	/**
+	 * @param id
+	 * @param options
+	 * @return id after reformatting to Java conventions
+	 */
+	
+	public String identifierFormatter(String id, ParseOptions options) {
+		id = CodeFormatter.makeSimpleIDSubtitutions(SIMPLESTRINGSTRINGS, id);
+		return id;
+
+	}
 
 	/**
 	 * @param call using objective C NSString method

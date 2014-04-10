@@ -29,8 +29,6 @@ public class CodeFormatter {
 	static final Map<String , String> SIMPLESTRINGS = new HashMap<String , String>() {
 	{
 		put("NSError", "Data");
-		put("NSString", "String");
-		put("NSMutableString", "String");
 		put("YES", "true");
 		put("TRUE", "true");
 		put("NO", "false");
@@ -65,10 +63,7 @@ public class CodeFormatter {
 	
 	public String identifierFormatter(String id, ParseOptions options) {
 		id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
-		if (id.equals("NSDictionary")
-				|| id.equals("NSMutableDictionary")) {
-			id = "Map" + options.getDirectoryTypes();
-		} 
+		id = dictionaryFormat.identifierFormatter(id, options);
 		id = arrayFormat.identifierFormatter(id, options);
 		id = userDefinedFormat.identifierFormatter(id, options);
 		return id;
@@ -529,10 +524,16 @@ public class CodeFormatter {
 		return statement;
 	}
 
+	@SuppressWarnings("javadoc")
 	public String preProcessorInstructions(String directive, String expression) {
 		return "";
 	}
 
+	/**
+	 * @param text
+	 * @param code
+	 * @return code for define statement 
+	 */
 	public String convertDefineToAssignment(String text, String code) {
 		String stmt = text + " = " + code + ";";
 		if (code.charAt(0) == '\"') {
