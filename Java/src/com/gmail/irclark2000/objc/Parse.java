@@ -39,6 +39,7 @@ public class Parse {
 			+ "\n-allheader dir     parse all headerfile in directry dir"
 			+ "\n-all dir           parse all headers and implementation files in directry dir"
 			+ "\n-o filename        write output to filename default is stdout"
+			+ "\n-package package   add package statement to output"
 			+ "\n-cstruct item,item read list of constructor prefixes. Default is 'init'"
 			+ "\n-f scriptfile      read options from scriptfile" + "";
 
@@ -51,6 +52,7 @@ public class Parse {
 	private static String directoryName = "";
 	private static ArrayList<String> inputFileNames = new ArrayList<String>();
 	private static String baseName = "";
+	private static String packageName = "";
 	private static ArrayList<String> headerFileNames = new ArrayList<String>();
 	private static ArrayList<String> cStructSignals = new ArrayList<String>();
 
@@ -117,6 +119,7 @@ public class Parse {
 
 		// Set<String> keys = cd.getHeaders().keySet();
 		options.setParsingheader(false);
+		options.setPackageName(packageName);
 		for (String inputFileName : inputFileNames) {
 			baseName = baseNameFromPath(inputFileName);
 			if (inputFileName.length() > 0) {
@@ -251,6 +254,13 @@ public class Parse {
 							inputFileNames.add(file.getAbsolutePath());
 						}
 					}
+				}
+				i++;
+			} else if (arg.equals("-package")) {
+				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
+					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
+				} else {
+					packageName = list.get(i+1);
 				}
 				i++;
 			} else if (arg.equals("-cstruct")) {

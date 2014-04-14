@@ -19,6 +19,19 @@ public class CodeFormatterArrayList {
 		put("NSMutableSet", "Set<?>");
 	}};
 
+	@SuppressWarnings("serial")
+	static final Map<String , String> SIMPLEARRAYFUNCTIONS = new HashMap<String , String>() {
+	{
+		put("insertObjectatIndex(", "add" + CodeFormatter.REVERSE_ARGS_MARKER + "(");
+		put("objectAtIndex(", "get(");
+		put("addObject(", "add(");
+		put("removeObject(", "remove(");
+		put("containsObject(", "contains(");
+		put("addObjectsFromArray(", "addAll(");
+		put("indexOfObjectIdenticalTo(", "indexOf(");
+
+	}};
+
 	/**
 	 * @param call
 	 *            using objective C NSArray method
@@ -27,19 +40,7 @@ public class CodeFormatterArrayList {
 	public String reformatArrayListFunctions(String call) {
 
 		String proto = String.format("%s", call);
-		if (proto.contains("insertObjectatIndex")) {
-			proto = proto.replace("insertObjectatIndex(", "add"
-					+ CodeFormatter.REVERSE_ARGS_MARKER + "(");
-		}
-		if (proto.contains("addObject")) {
-			proto = proto.replace("addObject(", "add(");
-		}
-		if (proto.contains("objectAtIndex")) {
-			proto = proto.replace("objectAtIndex(", "get(");
-		}
-		if (proto.contains("containsObject")) {
-			proto = proto.replace("containsObject(", "contains(");
-		}
+		proto = CodeFormatter.makeSimpleMethodSubtitutions(SIMPLEARRAYFUNCTIONS, proto);
 		return proto;
 	}
 
@@ -51,12 +52,15 @@ public class CodeFormatterArrayList {
 	 */
 	public String reformatConstructorCall(String call, ParseOptions options) {
 		String proto = String.format("%s", call);
+		if (proto.contains("ArrayList<?>.array(")) {
+			proto = "new ArrayList<?>()";
+		}
 		if (proto.contains("ArrayList<?>.alloc().initWithObjects(")) {
 			String aCall = ".alloc().initWithObjects(";
 			int start = proto.indexOf(aCall) + aCall.length();
 			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto
 					.substring(start - 1));
-			proto = "new ArrayList<?>(Arrays.AsList(";
+			proto = "new ArrayList<?>(Arrays.asList(";
 			for (int i = 0; i < args.size(); i++) {
 				String arg = args.get(i);
 				// skip the nil argument that ios requires
@@ -75,13 +79,13 @@ public class CodeFormatterArrayList {
 			int start = proto.indexOf(aCall) + aCall.length();
 			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto
 					.substring(start - 1));
-			proto = "new ArrayList<?>().addAll(" + args.get(0) + ")";
+			proto = "new ArrayList<?>(" + args.get(0) + ")";
 		} else if (proto.contains("ArrayList<?>.arrayWithObjects(")) {
 			String aCall = ".arrayWithObjects(";
 			int start = proto.indexOf(aCall) + aCall.length();
 			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto
 					.substring(start -1));
-			proto = "new ArrayList<?>(Arrays.AsList(";
+			proto = "new ArrayList<?>(Arrays.asList(";
 			for (int i = 0; i < args.size(); i++) {
 				String arg = args.get(i);
 				// skip the nil argument that ios requires

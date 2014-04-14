@@ -1,6 +1,8 @@
 package com.gmail.irclark2000.objc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Isaac Clark
@@ -11,15 +13,19 @@ public class ParseOptions {
 	private ArrayList<String> constructorSignatures;
 	private String outputFileName;
 	private String className;
+	private String packageName;
 	private String directoryTypes;
 	private boolean parsingheader;
 	private boolean smartConstructorGeneration;
 	private boolean constructor;
+	private Map<String, String> identityPairs; 
 	
 	ParseOptions () {
 		constructorSignatures = new ArrayList<String>();
 		setDirectoryTypes("<String, String>");
 		setSmartConstructorGeneration(true);
+		setPackageName("");
+		identityPairs = new HashMap<String, String>();
 	}
 	
 	/**
@@ -58,6 +64,36 @@ public class ParseOptions {
 	public void setClassName(String className) {
 		this.className = className;
 	}
+	/**
+	 * @return the packageName
+	 */
+	public String getPackageName() {
+		return packageName;
+	}
+
+	/**
+	 * @param packageName the packageName to set
+	 */
+	public void setPackageName(String packageName) {
+		this.packageName = packageName;
+	}
+
+	/**
+	 * @return the identityPairs
+	 */
+	public Map<String, String> getIdentityPairs() {
+		return identityPairs;
+	}
+
+	/**
+	 * @param key 
+	 * @param value 
+	 * add new identityPair
+	 */
+	public void addIdentityPair(String key, String value) {
+		this.identityPairs.put(key, value);
+	}
+
 	/**
 	 * @return true if parsing a header file; false if implementation file
 	 * 

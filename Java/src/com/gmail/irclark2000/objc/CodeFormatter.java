@@ -29,6 +29,8 @@ public class CodeFormatter {
 	static final Map<String , String> SIMPLESTRINGS = new HashMap<String , String>() {
 	{
 		put("NSError", "Data");
+		put("NSInteger", "Integer");
+		put("NSUInteger", "Integer");
 		put("YES", "true");
 		put("TRUE", "true");
 		put("NO", "false");
@@ -37,6 +39,7 @@ public class CodeFormatter {
 		put("self", "this");
 		put("nil", "null");
 		put("NULL", "null");
+		put("bool", "boolean");
 		put("IBAction", "void");
 		put("IBOutlet", "");
 	}};
@@ -63,6 +66,8 @@ public class CodeFormatter {
 	
 	public String identifierFormatter(String id, ParseOptions options) {
 		id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
+		id = makeSimpleIDSubtitutions(options.getIdentityPairs(), id);
+		id = stringFormat.identifierFormatter(id, options);
 		id = dictionaryFormat.identifierFormatter(id, options);
 		id = arrayFormat.identifierFormatter(id, options);
 		id = userDefinedFormat.identifierFormatter(id, options);

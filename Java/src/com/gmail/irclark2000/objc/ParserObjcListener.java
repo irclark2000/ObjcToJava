@@ -110,6 +110,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitTranslation_unit(ObjCParser.Translation_unitContext ctx) {
 		String program = "";
+		
+		if (options.getPackageName().length() > 0) {
+			program += "package " + options.getPackageName() + ";\n\n";
+		}
 		ArrayList<String> codeList = null;
 		for (External_declarationContext ext : ctx.external_declaration()) {
 			ArrayList<String> cl = getList(ext);
