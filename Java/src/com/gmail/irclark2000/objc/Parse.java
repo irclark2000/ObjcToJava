@@ -31,6 +31,7 @@ public class Parse {
 	private static final int USAGE_METHOD_CODE = 0;
 	private static final int MANGLED_COMMANDLINE_CODE = 1;
 	private static final int MANGLED_SCRIPT_FILE_CODE = 2;
+	private static final int MANGLED_REPLACE_OPTION = 3;
 	private static final String USAGE_MESSAGE = "Usage: %s options [inputFile1,inputFile2] \n"
 			+ "Options:"
 			+ "\n-help              print this usage message"
@@ -41,10 +42,12 @@ public class Parse {
 			+ "\n-o filename        write output to filename default is stdout"
 			+ "\n-package package   add package statement to output"
 			+ "\n-cstruct item,item read list of constructor prefixes. Default is 'init'"
+			+ "\n-replace id=newid  replace id with newid (can use this option multiple times)"
 			+ "\n-f scriptfile      read options from scriptfile" + "";
 
 	private static final String MANGLED_MESSAGE = "Command line error.\nType %s -help for usage information";
 	private static final String SCRIPT_MANGLED_MESSAGE = "Error specifing script file.\nType %s -help for usage information";
+	private static final String REPLACE_MANGLED_MESSAGE = "Error specifing replace options file.\nType %s -help for usage information";
 	private static boolean useHeaderFile = false;
 	private static boolean useAutoHeaderFile = false;
 	private static boolean doAll = false;
@@ -63,6 +66,7 @@ public class Parse {
 	public static void main(String[] args) throws IOException {
 
 		List<String> argsList = Arrays.asList(args);
+		ParseOptions options = new ParseOptions();
 		if (argsList.contains("-f")) {
 			String scriptName = "";
 			for (int i = 0; i < argsList.size(); i++) {
@@ -72,14 +76,13 @@ public class Parse {
 				}
 			}
 			if (scriptName.length() > 0) {
-				handleArgumentsFromFile(scriptName);
+				handleArgumentsFromFile(scriptName, options);
 			} else {
 
 			}
 		} else {
-			handleArguments(argsList);
+			handleArguments(argsList, options);
 		}
-		ParseOptions options = new ParseOptions();
 		for (String con : cStructSignals) {
 			options.getConstructorSignatures().add(con);
 		}
@@ -189,13 +192,16 @@ public class Parse {
 		case MANGLED_SCRIPT_FILE_CODE:
 			System.err.printf(SCRIPT_MANGLED_MESSAGE, "ObjectiveC");
 			break;
+		case MANGLED_REPLACE_OPTION:
+			System.err.printf(REPLACE_MANGLED_MESSAGE, "ObjectiveC");
+			break;
 		default:
 			break;
 		}
 		System.exit(errorCode);
 	}
 
-	private static void handleArgumentsFromFile(String fileName) {
+	private static void handleArgumentsFromFile(String fileName, ParseOptions options) {
 		File f = new File(fileName);
 		Scanner sc = null;
 		List<String> args = new ArrayList<String>();
@@ -212,10 +218,10 @@ public class Parse {
 			}
 		}
 		sc.close();
-		handleArguments(args);
+		handleArguments(args, options);
 	}
 
-	private static void handleArguments(List<String> list) {
+	private static void handleArguments(List<String> list, ParseOptions options) {
 		for (int i = 0; i < list.size(); i++) {
 			String arg = list.get(i);
 			if (arg.equals("help") || arg.equals("-help")) {
@@ -256,6 +262,19 @@ public class Parse {
 					}
 				}
 				i++;
+			} else if (arg.equals("-replace")) {
+				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
+					printErrorAndExit(MANGLED_REPLACE_OPTION);
+				} else {
+					String [] pair = list.get(i+1).split("=");
+					if (pair.length != 2) {
+						printErrorAndExit(MANGLED_REPLACE_OPTION);
+					} else {
+					   options.addIdentityPair(pair[0].trim(), pair[1].trim());
+					}
+					i++;
+				}
+				
 			} else if (arg.equals("-package")) {
 				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
