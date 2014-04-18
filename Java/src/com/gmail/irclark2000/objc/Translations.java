@@ -16,12 +16,11 @@ public class Translations {
 	public static final String TRANSLATIONFILE = "translate.dat";
 
 	public static Map<String, String> EXTERNALSTRINGS = new HashMap<String, String>();
-	private static Map<String, String> EXTERNALFUNCTIONS = new HashMap<String, String>();
+	public static Map<String, String> EXTERNALFUNCTIONS = new HashMap<String, String>();
 
 	/**
 	 * Read id and function translations from an external file
 	 * @param fileName
-	 * @param options
 	 * @return true if successful at finding translation file
 	 */
 	public static boolean readTranslations(String fileName) {
@@ -108,9 +107,19 @@ public class Translations {
 			String arg2 = string.substring(breakPoint).trim(); 
 			arg1 = arg1.substring(1, arg1.length()-1);
 			arg2 = arg2.substring(1, arg2.length()-1);
-			args.add(arg1);
-			args.add(arg2);
+			args.add(unescape(arg1));
+			args.add(unescape(arg2));
 		}
 		return args;
+	}
+
+	private static String unescape(String arg) {
+		arg.replaceAll("\\n", "\n");
+		arg.replaceAll("\\t", "\t");
+		arg.replaceAll("\\r", "\r");
+		arg.replaceAll("\\\"", "\"");
+		arg.replaceAll("\\\'", "\'");
+//		arg.replaceAll("\\\\", "\\");
+		return arg;
 	}
 }

@@ -1,0 +1,74 @@
+# Define translations performed by program
+# translates functions and identifiers
+#
+
+#  Miscellaneous translations
+#
+#  Miscellaneous Identifier Translations
+-replaceID  "NSError" "Data"
+-replaceID  "NSOrderedSame" "0"
+-replaceID  "NSInteger" "Integer"
+-replaceID  "NSUInteger" "Integer"
+-replaceID  "YES" "true"
+-replaceID  "TRUE" "true"
+-replaceID  "NO" "false"
+-replaceID  "FALSE" "false"
+-replaceID  "NSObject" "Object"
+-replaceID  "self" "this"
+-replaceID  "nil" "null"
+-replaceID  "NULL" "null"
+-replaceID  "bool" "boolean"
+-replaceID  "IBAction" "void"
+-replaceID  "IBOutlet" ""
+#  Miscellaneous Function Translations
+-replaceFUNC  ".autorelease()" ""
+-replaceFUNC  ".retain()" ""
+-replaceFUNC  "NSNull.null()" "null"
+
+#  String translations
+#
+#  String Identifier Translations
+
+-replaceID  "NSString" "String"
+-replaceID  "NSMutableString" "String"
+
+#  String Function Translations
+-replaceFUNC "substringToIndex(" "substring(0, "
+-replaceFUNC "caseInsensitiveCompare(" "compareTo("
+-replaceFUNC "substringFromIndex(" "substring("
+-replaceFUNC  "isEqualToString(" "equals("
+-replaceFUNC  "hasPrefix(" "startsWith("
+-replaceFUNC  "hasSuffix(" "endsWith("
+-replaceFUNC  "String.stringWithString(" "String.format(\"%s\", "
+-replaceFUNC  "characterAtIndex(" "charAt("
+-replaceFUNC  "uppercaseString(" "toUpper("
+-replaceFUNC  "lowercaseString(" "toLower("
+-replaceFUNC  "lowercaseString(" "toLower("
+-replaceFUNC  ".intValue()" "+Integer.parseInt("
+
+#  Array translations
+#
+#  Array Identifier Translations
+-replaceID  "NSArray" "ArrayList<?>"
+-replaceID  "NSMutableArray" "ArrayList<?>"
+-replaceID  "NSSet" "Set<?>"
+-replaceID  "NSMutableSet" "Set<?>"
+
+#  Array Function Translations
+-replaceFUNC  "insertObjectatIndex(" "add(-"
+-replaceFUNC  "objectAtIndex(" "get("
+-replaceFUNC  "addObject(" "add("
+-replaceFUNC  "removeObject(" "remove("
+-replaceFUNC  "containsObject(" "contains("
+-replaceFUNC  "addObjectsFromArray(" "addAll("
+-replaceFUNC  "indexOfObjectIdenticalTo(" "indexOf("
+#  Dictionary translations
+#
+#  Dictionary Identifier Translations
+
+#  Dictionary Function Translations
+-replaceFunc  "setObjectforKey(" "put(-"
+-replaceFunc  "removeObjectForKey(" "remove("
+-replaceFunc  "removeAllObjects(" "clear("
+-replaceFunc  "objectForKey(" "get("
+-replaceFunc  "allKeys(" "keySet("

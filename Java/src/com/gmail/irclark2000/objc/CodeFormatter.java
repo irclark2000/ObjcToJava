@@ -71,7 +71,6 @@ public class CodeFormatter {
 		} else {
 			id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
 		}
-		id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
 		id = makeSimpleIDSubtitutions(options.getIdentityPairs(), id);
 		id = stringFormat.identifierFormatter(id, options);
 		id = dictionaryFormat.identifierFormatter(id, options);
@@ -107,17 +106,23 @@ public class CodeFormatter {
 	 */
 	public static String makeSimpleMethodSubtitutions(Map<String, String> map,
 			String code) {
+		
 		for (String signature : map.keySet()) {
 			if (code.contains(signature)) {
-				code = code.replace(signature, map.get(signature));
+				String replaceCode = map.get(signature);
+				if (replaceCode.startsWith("+")) {
+					replaceCode = replaceCode.substring(1);
+					if (replaceCode.length() == 0) {
+					   code = "";	
+					} else {
+					  code = code.replace(signature, "");
+					  code = replaceCode + code + ")";
+					}
+				} else {
+				code = code.replace(signature, replaceCode);
+				}
 				break;
 			}
-		}
-		if (code.contains("intValue()")) {
-			String aCall = ".intValue()";
-			int index = code.indexOf(aCall);
-			code = "Integer.parseInt(" + code.substring(0, index)
-					+ code.substring(index + aCall.length()) + ")";
 		}
 		return code;
 	}
@@ -278,11 +283,15 @@ public class CodeFormatter {
 	public String reformatMethodCall(String call, ParseOptions options) {
 		// String proto = String.format("%s", call);
 		String proto = reformatConstructorCall(call, options);
-		proto = stringFormat.reformatStringFunctions(proto);
-		proto = arrayFormat.reformatArrayListFunctions(proto);
+		proto = stringFormat.reformatStringFunctions(proto, options);
+		proto = arrayFormat.reformatArrayListFunctions(proto, options);
 		proto = dictionaryFormat.reformatMapFunctions(proto, options);
 		proto = userDefinedFormat.reformatMethodCall(proto, options);
-		proto = makeSimpleMethodSubtitutions(SIMPLEFUNCTIONS, proto);
+		if (!options.useExternalTranslations()) {
+			proto = makeSimpleMethodSubtitutions(SIMPLEFUNCTIONS, proto);
+		} else {
+			proto = makeSimpleMethodSubtitutions(Translations.EXTERNALFUNCTIONS, proto);
+		}
 		proto = fixReverseArgs(proto);
 
 		if (proto.contains("isKindOf(")) {

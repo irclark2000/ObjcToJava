@@ -32,6 +32,7 @@ public class CodeFormatterString {
 			put("characterAtIndex(", "charAt(");
 			put("uppercaseString(", "toUpper(");
 			put("lowercaseString(", "toLower(");
+			put(".intValue()", "+Integer.parseInt(");
 		}
 	};
 
@@ -53,12 +54,15 @@ public class CodeFormatterString {
 	/**
 	 * @param call
 	 *            using objective C NSString method
+	 * @param options
 	 * @return Java equivalent function call using String
 	 */
-	public String reformatStringFunctions(String call) {
+	public String reformatStringFunctions(String call, ParseOptions options) {
 		String proto = String.format("%s", call);
-		proto = CodeFormatter.makeSimpleMethodSubtitutions(
-				SIMPLESTRINGFUNCTIONS, proto);
+		if (!options.useExternalTranslations()) {
+			proto = CodeFormatter.makeSimpleMethodSubtitutions(
+					SIMPLESTRINGFUNCTIONS, proto);
+		}
 		if (proto.contains("String.stringWithFormat(")) {
 			String aCall = "String.stringWithFormat(";
 			int index = proto.indexOf(aCall) + aCall.length() - 1;

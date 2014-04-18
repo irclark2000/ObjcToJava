@@ -39,13 +39,16 @@ public class CodeFormatterArrayList {
 	/**
 	 * @param call
 	 *            using objective C NSArray method
+	 * @param options
 	 * @return Java equivalent function call using ArrayList
 	 */
-	public String reformatArrayListFunctions(String call) {
+	public String reformatArrayListFunctions(String call, ParseOptions options) {
 
 		String proto = String.format("%s", call);
-		proto = CodeFormatter.makeSimpleMethodSubtitutions(
-				SIMPLEARRAYFUNCTIONS, proto);
+		if (!options.useExternalTranslations()) {
+			proto = CodeFormatter.makeSimpleMethodSubtitutions(
+					SIMPLEARRAYFUNCTIONS, proto);
+		}
 		return proto;
 	}
 
