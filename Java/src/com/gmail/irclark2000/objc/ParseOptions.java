@@ -18,6 +18,7 @@ public class ParseOptions {
 	private boolean parsingheader;
 	private boolean smartConstructorGeneration;
 	private boolean constructor;
+	private boolean useExternalTranslations;
 	private Map<String, String> identityPairs; 
 	
 	ParseOptions () {
@@ -25,6 +26,7 @@ public class ParseOptions {
 		setDirectoryTypes("<String, String>");
 		setSmartConstructorGeneration(true);
 		setPackageName("");
+		this.setUseExternalTranslations(false);
 		identityPairs = new HashMap<String, String>();
 	}
 	
@@ -148,6 +150,20 @@ public class ParseOptions {
 	 */
 	public void setConstructorMethod(boolean constructor) {
 		this.constructor = constructor;
+	}
+
+	/**
+	 * @return the useExternalTranslations
+	 */
+	public boolean useExternalTranslations() {
+		return useExternalTranslations;
+	}
+
+	/**
+	 * @param useExternalTranslations the useExternalTranslations to set
+	 */
+	public void setUseExternalTranslations(boolean useExternalTranslations) {
+		this.useExternalTranslations = useExternalTranslations;
 	}
 
 }

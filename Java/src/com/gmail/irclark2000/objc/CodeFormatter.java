@@ -22,37 +22,38 @@ public class CodeFormatter {
 	private CodeFormatterString stringFormat = new CodeFormatterString();
 	private CodeFormatterArrayList arrayFormat = new CodeFormatterArrayList();
 	private CodeFormatterMap dictionaryFormat = new CodeFormatterMap();
-	private CodeFormatterUserDefined userDefinedFormat = 
-			new CodeFormatterUserDefined();
-	
-	@SuppressWarnings("serial")
-	static final Map<String , String> SIMPLESTRINGS = new HashMap<String , String>() {
-	{
-		put("NSError", "Data");
-		put("NSInteger", "Integer");
-		put("NSUInteger", "Integer");
-		put("YES", "true");
-		put("TRUE", "true");
-		put("NO", "false");
-		put("FALSE", "false" );
-		put("NSObject", "Object");
-		put("self", "this");
-		put("nil", "null");
-		put("NULL", "null");
-		put("bool", "boolean");
-		put("IBAction", "void");
-		put("IBOutlet", "");
-	}};
-	
-	@SuppressWarnings("serial")
-	static final Map<String , String> SIMPLEFUNCTIONS = new HashMap<String , String>() {
-	{
-		put(".autorelease()", "");
-		put(".retain()", "");
-		put("NSNull.null()", "null");
+	private CodeFormatterUserDefined userDefinedFormat = new CodeFormatterUserDefined();
 
-	}};
-	
+	@SuppressWarnings("serial")
+	static final Map<String, String> SIMPLESTRINGS = new HashMap<String, String>() {
+		{
+			put("NSError", "Data");
+			put("NSInteger", "Integer");
+			put("NSUInteger", "Integer");
+			put("YES", "true");
+			put("TRUE", "true");
+			put("NO", "false");
+			put("FALSE", "false");
+			put("NSObject", "Object");
+			put("self", "this");
+			put("nil", "null");
+			put("NULL", "null");
+			put("bool", "boolean");
+			put("IBAction", "void");
+			put("IBOutlet", "");
+		}
+	};
+
+	@SuppressWarnings("serial")
+	static final Map<String, String> SIMPLEFUNCTIONS = new HashMap<String, String>() {
+		{
+			put(".autorelease()", "");
+			put(".retain()", "");
+			put("NSNull.null()", "null");
+
+		}
+	};
+
 	CodeFormatter() {
 		constructorSignalsList = new ArrayList<String>();
 		constructorSignalsList.add("init");
@@ -63,8 +64,13 @@ public class CodeFormatter {
 	 * @param options
 	 * @return id after reformatting to Java conventions
 	 */
-	
+
 	public String identifierFormatter(String id, ParseOptions options) {
+		if (options.useExternalTranslations()) {
+			id = makeSimpleIDSubtitutions(Translations.EXTERNALSTRINGS, id);
+		} else {
+			id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
+		}
 		id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
 		id = makeSimpleIDSubtitutions(options.getIdentityPairs(), id);
 		id = stringFormat.identifierFormatter(id, options);
@@ -75,35 +81,47 @@ public class CodeFormatter {
 	}
 
 	/**
-	 * @param map mapping of identifier to target
-	 * @param ID to be substituted for
+	 * @param map
+	 *            mapping of identifier to target
+	 * @param ID
+	 *            to be substituted for
 	 * @return re-mapped identifier
 	 */
-	
-	public static String makeSimpleIDSubtitutions (Map<String , String> map, String ID) {
+
+	public static String makeSimpleIDSubtitutions(Map<String, String> map,
+			String ID) {
 		String match = map.get(ID);
 		if (match != null) {
 			ID = match;
 		}
 		return ID;
-		
+
 	}
-	
+
 	/**
-	 * @param map keys = signatures; values = replacements
-	 * @param code function call
+	 * @param map
+	 *            keys = signatures; values = replacements
+	 * @param code
+	 *            function call
 	 * @return rewritten as needed
 	 */
-	public static String makeSimpleMethodSubtitutions (Map<String , String> map, String code) {
+	public static String makeSimpleMethodSubtitutions(Map<String, String> map,
+			String code) {
 		for (String signature : map.keySet()) {
 			if (code.contains(signature)) {
 				code = code.replace(signature, map.get(signature));
 				break;
 			}
 		}
+		if (code.contains("intValue()")) {
+			String aCall = ".intValue()";
+			int index = code.indexOf(aCall);
+			code = "Integer.parseInt(" + code.substring(0, index)
+					+ code.substring(index + aCall.length()) + ")";
+		}
 		return code;
 	}
-	
+
 	/**
 	 * @param cd
 	 *            class description holder,
@@ -144,13 +162,16 @@ public class CodeFormatter {
 		for (int i = 0; i < 4; i++) {
 			switch (i) {
 			case 0:
-				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, className, false);
+				cDec = ParserObjcListener.chooseMapAndDeclaration(cd,
+						className, false);
 				break;
 			case 1:
-				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, className, true);
+				cDec = ParserObjcListener.chooseMapAndDeclaration(cd,
+						className, true);
 				break;
 			case 2:
-				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, "", false);
+				cDec = ParserObjcListener
+						.chooseMapAndDeclaration(cd, "", false);
 				break;
 			case 3:
 				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, "", true);
@@ -174,9 +195,9 @@ public class CodeFormatter {
 	}
 
 	/**
-	 * Note that for constructor methods starting with init
-	 * a flag is set to true allowing some additional treatment if
-	 * smartConstructor is turned on
+	 * Note that for constructor methods starting with init a flag is set to
+	 * true allowing some additional treatment if smartConstructor is turned on
+	 * 
 	 * @param code
 	 *            the construction declaration
 	 * @param className
@@ -283,8 +304,10 @@ public class CodeFormatter {
 		int start = call.indexOf(REVERSE_ARGS_MARKER);
 		if (start != -1) {
 			int startArgs = start + REVERSE_ARGS_MARKER.length();
-			ArrayList<String> args = getFunctionArguments(fCall.substring(startArgs));
-			call = call.substring(0, startArgs + 1) + args.get(1) + ", " + args.get(0) + ")";
+			ArrayList<String> args = getFunctionArguments(fCall
+					.substring(startArgs));
+			call = call.substring(0, startArgs + 1) + args.get(1) + ", "
+					+ args.get(0) + ")";
 			call = call.replace(REVERSE_ARGS_MARKER, "");
 		}
 		return call;
@@ -398,10 +421,12 @@ public class CodeFormatter {
 	public static ArrayList<String> getFunctionArguments(String call) {
 		return getEnclosedArguments(call, '(');
 	}
-	
-	private static ArrayList<String> getEnclosedArguments(String call, char openBrace) {
+
+	private static ArrayList<String> getEnclosedArguments(String call,
+			char openBrace) {
 		char closeBrace = ')';
-		if (openBrace == '{') closeBrace = '}';
+		if (openBrace == '{')
+			closeBrace = '}';
 		ArrayList<String> args = new ArrayList<String>();
 		boolean insideQuote = false;
 		boolean insideSingleQuote = false;
@@ -454,10 +479,11 @@ public class CodeFormatter {
 	}
 
 	/**
-	 * methDef must be pre-screen to be from an init-based
-	 * constructor.  Removes return values, and if(self)
-	 * stuff that came from IOS
-	 * @param methDef code to convert
+	 * methDef must be pre-screen to be from an init-based constructor. Removes
+	 * return values, and if(self) stuff that came from IOS
+	 * 
+	 * @param methDef
+	 *            code to convert
 	 * @return code with IOS specific stuff removed
 	 */
 	public String applyConstructorFixes(String methDef) {
@@ -468,14 +494,15 @@ public class CodeFormatter {
 		if (code.contains("if(this != null){")) {
 			String anIf = "if(this != null){";
 			int index = code.indexOf(anIf) + anIf.length() - 1;
-			ArrayList<String> contents = getEnclosedArguments(code.substring(index), '{');
+			ArrayList<String> contents = getEnclosedArguments(
+					code.substring(index), '{');
 			if (contents.size() == 1) {
 				int start = index + contents.get(0).length();
 				while (code.charAt(start) != '}') {
 					start++;
 				}
-				code = code.substring(0, code.indexOf(anIf)) + contents.get(0).trim()
-						+ code.substring(start+ 1);
+				code = code.substring(0, code.indexOf(anIf))
+						+ contents.get(0).trim() + code.substring(start + 1);
 				code = code.replaceAll("\n[\n]+", "\n");
 			}
 		}
@@ -483,9 +510,12 @@ public class CodeFormatter {
 	}
 
 	/**
-	 * @param conditional left side of assignment
-	 * @param opCode operation
-	 * @param assignExpression rightSide of assignment
+	 * @param conditional
+	 *            left side of assignment
+	 * @param opCode
+	 *            operation
+	 * @param assignExpression
+	 *            rightSide of assignment
 	 * @return assigment statement
 	 */
 	public String assignment_expression(String conditional, String opCode,
@@ -495,34 +525,36 @@ public class CodeFormatter {
 			// make sure left side does not contain multiplication
 			String[] parts = statement.split("\\*");
 			// found multiplication left of equal sign?
-			if (parts.length == 2 && opCode.endsWith("=")) { 
+			if (parts.length == 2 && opCode.endsWith("=")) {
 				// get rid of "*" as it is likely pointer representation
-				statement = parts[0].trim() + " " + parts[1].trim() + " = " 
+				statement = parts[0].trim() + " " + parts[1].trim() + " = "
 						+ assignExpression;
 
-			} 
+			}
 			// check for a getter is present where a setter is required
 			else if (opCode.equals("=") && statement.endsWith("()")) {
 				// double check for a getter
-				String [] dotParts = statement.split("\\.");
+				String[] dotParts = statement.split("\\.");
 				// double check for a getter
-				if (dotParts.length > 1 && dotParts[dotParts.length-1].startsWith("get")) {
+				if (dotParts.length > 1
+						&& dotParts[dotParts.length - 1].startsWith("get")) {
 					// convert to setter!!
-					for (int i=0; i < dotParts.length -1; i++) {
-					   if (i == 0) {
-						   statement = dotParts[0].trim();
-					   } else {
-						   statement += "." + dotParts[i].trim();
-					   }
+					for (int i = 0; i < dotParts.length - 1; i++) {
+						if (i == 0) {
+							statement = dotParts[0].trim();
+						} else {
+							statement += "." + dotParts[i].trim();
+						}
 					}
-					String ending = dotParts[dotParts.length-1];
+					String ending = dotParts[dotParts.length - 1];
 					// change statement to setter
-					statement += ".s" + ending.substring(1, ending.length()-2) + "(" +
-							assignExpression + ")";
-				} else { // not a getter use normal code  probably wrong!!
+					statement += ".s"
+							+ ending.substring(1, ending.length() - 2) + "("
+							+ assignExpression + ")";
+				} else { // not a getter use normal code probably wrong!!
 					statement += " " + opCode + " " + assignExpression;
 				}
-			} else {  // normal assignment
+			} else { // normal assignment
 				statement += " " + opCode + " " + assignExpression;
 			}
 		}
@@ -537,14 +569,14 @@ public class CodeFormatter {
 	/**
 	 * @param text
 	 * @param code
-	 * @return code for define statement 
+	 * @return code for define statement
 	 */
 	public String convertDefineToAssignment(String text, String code) {
 		String stmt = text + " = " + code + ";";
 		if (code.charAt(0) == '\"') {
 			stmt = "String " + stmt;
 		} else {
-			stmt = "Number " + stmt; 
+			stmt = "Number " + stmt;
 		}
 		return stmt;
 	}

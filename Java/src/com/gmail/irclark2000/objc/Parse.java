@@ -66,7 +66,9 @@ public class Parse {
 	public static void main(String[] args) throws IOException {
 
 		List<String> argsList = Arrays.asList(args);
+		
 		ParseOptions options = new ParseOptions();
+		options.setUseExternalTranslations(Translations.readTranslations(Translations.TRANSLATIONFILE));
 		if (argsList.contains("-f")) {
 			String scriptName = "";
 			for (int i = 0; i < argsList.size(); i++) {

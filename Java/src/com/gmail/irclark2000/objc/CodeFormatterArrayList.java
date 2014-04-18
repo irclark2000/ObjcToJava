@@ -12,25 +12,29 @@ import java.util.Map;
 
 public class CodeFormatterArrayList {
 	@SuppressWarnings("serial")
-	static final Map<String , String> SIMPLEARRAYSTRINGS = new HashMap<String , String>() {{
-		put("NSArray", "ArrayList<?>");
-		put("NSMutableArray", "ArrayList<?>");
-		put("NSSet", "Set<?>");
-		put("NSMutableSet", "Set<?>");
-	}};
+	static final Map<String, String> SIMPLEARRAYSTRINGS = new HashMap<String, String>() {
+		{
+			put("NSArray", "ArrayList<?>");
+			put("NSMutableArray", "ArrayList<?>");
+			put("NSSet", "Set<?>");
+			put("NSMutableSet", "Set<?>");
+		}
+	};
 
 	@SuppressWarnings("serial")
-	static final Map<String , String> SIMPLEARRAYFUNCTIONS = new HashMap<String , String>() {
-	{
-		put("insertObjectatIndex(", "add" + CodeFormatter.REVERSE_ARGS_MARKER + "(");
-		put("objectAtIndex(", "get(");
-		put("addObject(", "add(");
-		put("removeObject(", "remove(");
-		put("containsObject(", "contains(");
-		put("addObjectsFromArray(", "addAll(");
-		put("indexOfObjectIdenticalTo(", "indexOf(");
+	static final Map<String, String> SIMPLEARRAYFUNCTIONS = new HashMap<String, String>() {
+		{
+			put("insertObjectatIndex(", "add"
+					+ CodeFormatter.REVERSE_ARGS_MARKER + "(");
+			put("objectAtIndex(", "get(");
+			put("addObject(", "add(");
+			put("removeObject(", "remove(");
+			put("containsObject(", "contains(");
+			put("addObjectsFromArray(", "addAll(");
+			put("indexOfObjectIdenticalTo(", "indexOf(");
 
-	}};
+		}
+	};
 
 	/**
 	 * @param call
@@ -40,7 +44,8 @@ public class CodeFormatterArrayList {
 	public String reformatArrayListFunctions(String call) {
 
 		String proto = String.format("%s", call);
-		proto = CodeFormatter.makeSimpleMethodSubtitutions(SIMPLEARRAYFUNCTIONS, proto);
+		proto = CodeFormatter.makeSimpleMethodSubtitutions(
+				SIMPLEARRAYFUNCTIONS, proto);
 		return proto;
 	}
 
@@ -84,7 +89,7 @@ public class CodeFormatterArrayList {
 			String aCall = ".arrayWithObjects(";
 			int start = proto.indexOf(aCall) + aCall.length();
 			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto
-					.substring(start -1));
+					.substring(start - 1));
 			proto = "new ArrayList<?>(Arrays.asList(";
 			for (int i = 0; i < args.size(); i++) {
 				String arg = args.get(i);
@@ -110,7 +115,9 @@ public class CodeFormatterArrayList {
 	 */
 
 	public String identifierFormatter(String id, ParseOptions options) {
-		id = CodeFormatter.makeSimpleIDSubtitutions(SIMPLEARRAYSTRINGS, id);
+		if (!options.useExternalTranslations()) {
+			id = CodeFormatter.makeSimpleIDSubtitutions(SIMPLEARRAYSTRINGS, id);
+		}
 		return id;
 	}
 
