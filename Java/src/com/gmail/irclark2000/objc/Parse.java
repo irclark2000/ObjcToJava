@@ -43,6 +43,7 @@ public class Parse {
 			+ "\n-package package   add package statement to output"
 			+ "\n-cstruct item,item read list of constructor prefixes. Default is 'init'"
 			+ "\n-replace id=newid  replace id with newid (can use this option multiple times)"
+			+ "\n-transfile file    read addtional translationns from file"
 			+ "\n-f scriptfile      read options from scriptfile" + "";
 
 	private static final String MANGLED_MESSAGE = "Command line error.\nType %s -help for usage information";
@@ -277,6 +278,13 @@ public class Parse {
 					i++;
 				}
 				
+			} else if (arg.equals("-transfile")) {
+				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
+					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
+				} else {
+					Translations.readTranslations(list.get(i+1));
+				}
+				i++;
 			} else if (arg.equals("-package")) {
 				if (i >= list.size() - 1 || list.get(i + 1).startsWith("-")) {
 					printErrorAndExit(MANGLED_COMMANDLINE_CODE);
