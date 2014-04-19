@@ -1,0 +1,22 @@
+# Define translations performed by program
+# translates functions and identifiers
+#
+
+#  HTTP translations
+#
+#  HTTP Identifier Translations
+-replaceID  "NSUTF8StringEncoding" "\"UTF-8\""
+-replaceID  "NSURL" "URL"
+-replaceID  "NSURLRequest" "HttpURLConnection"
+-replaceID  "NSMutableURLRequest" "HttpURLConnection"
+-replaceID  "NSHTTPURLResponse" "StringBuffer"
+-replaceID  "NSURLRequestReloadIgnoringCacheData" "false"
+-replaceID  "NSURLRequestUseProtocolCachePolicy" "true"
+
+#  HTTP Function Translations
+-replaceFUNC  "setHTTPMethod(" "setRequestMethod("
+-replaceFUNC  ".dataUsingEncoding("  "+URLEncoder.encodeReverseArgs("
+-replaceFUNC  "URL.URLWithString(" "new URL("
+-replaceFUNC  "setValueforHTTPHeaderField(" "setRequestPropertyReverseArgs("
+-replaceFUNC  "addValueforHTTPHeaderField(" "addRequestPropertyReverseArgs("
+-replaceFUNC  ".stringByAddingPercentEscapesUsingEncoding(" "+URLEncoder.encodeReverseArgs("

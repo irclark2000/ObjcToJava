@@ -106,20 +106,38 @@ public class CodeFormatter {
 	 */
 	public static String makeSimpleMethodSubtitutions(Map<String, String> map,
 			String code) {
-		
+
 		for (String signature : map.keySet()) {
 			if (code.contains(signature)) {
 				String replaceCode = map.get(signature);
 				if (replaceCode.startsWith("+")) {
 					replaceCode = replaceCode.substring(1);
 					if (replaceCode.length() == 0) {
-					   code = "";	
+						code = "";
 					} else {
-					  code = code.replace(signature, "");
-					  code = replaceCode + code + ")";
+						int index = code.indexOf(signature) + signature.length();
+						ArrayList<String> args = getFunctionArguments(code.substring(index - 1));
+						String nCode = "";
+						for (int i=0; i < args.size(); i++) {
+							String arg = args.get(i);
+							if (arg.length() == 0) {
+								continue;
+							}
+							if (nCode.length() == 0) {
+								nCode = replaceCode + arg;
+							} else {
+								nCode += ", " + arg;
+							}
+						}
+						if (nCode.length() == 0) {
+							nCode = replaceCode + code.substring(0, code.indexOf(signature)); 
+						} else {
+							nCode += ", " + code.substring(0, code.indexOf(signature));
+						}
+						code = nCode + ")";
 					}
 				} else {
-				code = code.replace(signature, replaceCode);
+					code = code.replace(signature, replaceCode);
 				}
 				break;
 			}
@@ -290,7 +308,8 @@ public class CodeFormatter {
 		if (!options.useExternalTranslations()) {
 			proto = makeSimpleMethodSubtitutions(SIMPLEFUNCTIONS, proto);
 		} else {
-			proto = makeSimpleMethodSubtitutions(Translations.EXTERNALFUNCTIONS, proto);
+			proto = makeSimpleMethodSubtitutions(
+					Translations.EXTERNALFUNCTIONS, proto);
 		}
 		proto = fixReverseArgs(proto);
 
@@ -446,8 +465,12 @@ public class CodeFormatter {
 		while (call.charAt(start) != openBrace)
 			start++;
 		int end = start + 1;
+		
+		
 		while (true) {
+			char cPrior; // the previous character  
 			char c = call.charAt(end);
+			cPrior = (end == 0) ? ' ' :  call.charAt(end-1);
 			if (!insideQuote && !insideSingleQuote) {
 				if (c == ',') {
 					if (parenCount == 0) {
@@ -457,9 +480,9 @@ public class CodeFormatter {
 					}
 				} else if (c == openBrace) {
 					parenCount++;
-				} else if (c == '\'') {
+				} else if (c == '\'' && cPrior != '\\') {
 					insideSingleQuote = !insideSingleQuote;
-				} else if (c == '\"') {
+				} else if (c == '\"' && cPrior != '\\') {
 					insideQuote = !insideQuote;
 				} else if (c == closeBrace) {
 					parenCount--;
@@ -471,12 +494,12 @@ public class CodeFormatter {
 				}
 				end++;
 			} else if (insideQuote) {
-				if (c == '\"' && call.charAt(end - 1) != '\\') {
+				if (c == '\"' && cPrior != '\\') {
 					insideQuote = !insideQuote;
 				}
 				end++;
 			} else if (insideSingleQuote) {
-				if (c == '\'' && call.charAt(end - 1) != '\\') {
+				if (c == '\'' && cPrior != '\\') {
 					insideSingleQuote = !insideSingleQuote;
 				}
 				end++;

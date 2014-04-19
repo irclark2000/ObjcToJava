@@ -12,11 +12,7 @@ public class CodeFormatterUserDefined {
 
 	static final Map<String , String> SIMPLEUSERDEFINEDSTRINGS = new HashMap<String , String>() {
 	{
-		put("NSUTF8StringEncoding", "\"UTF-8\"");
-		put("NSURLRequest", "HttpURLConnection");
-		put("NSMutableURLRequest", "HttpURLConnection");
-		put("NSHTTPURLResponse", "StringBuffer");
-		put("NSURLRequestReloadIgnoringCacheData", "false");
+		put("GXXX", "GXXX");
 	}};
 	
 /**
@@ -48,9 +44,6 @@ public class CodeFormatterUserDefined {
 		final String connectVariable = "";
 		
 		String proto = String.format("%s", call);
-		if (proto.contains("setHTTPMethod(")) {
-			proto = proto.replace("setHTTPMethod(", "setRequestMethod(");
-		}
 		if (proto.contains(".setHTTPBody(")) {
 			int index = proto.indexOf(".setHTTPBody(");
 			String arg1 = proto.substring(0, index);
@@ -60,27 +53,14 @@ public class CodeFormatterUserDefined {
 			proto += "wr.writeBytes(" + args.get(0) + ");\nwr.flush();\nwr.close();\n;";
 			proto +="";
 		}
-		if (proto.contains("NSURL.URLWithString(")) {
-			proto = proto.replace("NSURL.URLWithString(", "new URL(");
-		}
-		if (proto.contains("setValueforHTTPHeaderField(")) {
-			proto = proto.replace("setValueforHTTPHeaderField(", "setRequestProperty" + CodeFormatter.REVERSE_ARGS_MARKER +"(");
-		}
-		if (proto.contains("stringByAddingPercentEscapesUsingEncoding(")) {
-			int index = proto.indexOf(".stringByAddingPercentEscapesUsingEncoding");
-			String arg1 = proto.substring(0, index);
-			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto.substring(index + 1));
-			proto = "URLEncoder.encode(" + arg1 + ", " + args.get(0) + ");";
-			//proto.replace("NSUTF8StringEncoding", "UTF-8");
-		}
 		if (proto.contains("WithURLcachePolicytimeoutInterval")) {
 			int index = proto.indexOf("WithURLcachePolicytimeoutInterval");
 			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto
 					.substring(index));
 			proto = "(HttpURLConnection) (" + args.get(0) + ").openConnection();\n";
 			proto += "//.setUseCaches(" + args.get(1) + ");\n";
-			proto += "//.setConnectTimeout(" + args.get(2) + ");\n";
-			proto += "//.setReadTimeout(" + args.get(2) + ");\n";
+			proto += "//.setConnectTimeout((int) (" + args.get(2) + "*1000));\n";
+			proto += "//.setReadTimeout((int) (" + args.get(2) + "*1000));\n";
 		}
 		if (proto.contains("sendSynchronousRequestreturningResponseerror")) {
 			int index = proto.indexOf("sendSynchronousRequestreturningResponse");
