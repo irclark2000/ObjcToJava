@@ -439,7 +439,9 @@ public class CodeFormatter {
 				rewrite.append(c);
 			}
 		}
-		return rewrite.toString();
+		// try removing some semicolon only lines
+		String finalCode = rewrite.toString().replaceAll("\n[\t]+;\n", "\n");
+		return finalCode;
 	}
 
 	/**

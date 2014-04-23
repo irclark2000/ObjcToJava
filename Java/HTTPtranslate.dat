@@ -20,3 +20,6 @@
 -replaceFUNC  "setValueforHTTPHeaderField(" "setRequestPropertyReverseArgs("
 -replaceFUNC  "addValueforHTTPHeaderField(" "addRequestPropertyReverseArgs("
 -replaceFUNC  ".stringByAddingPercentEscapesUsingEncoding(" "+URLEncoder.encodeReverseArgs("
+-replaceFUNC  "queue.addOperation(" "queue.performOperations("
+-replaceFUNC  "defaults.get(" "defaults.getString(\"\", "
+

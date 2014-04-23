@@ -2102,7 +2102,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 		this.classDeclarations = classDescription.getmFiles();
 	}
 
+	// FIXME  do something about define statements
+	
 	@Override public void exitDefine_statement(ObjCParser.Define_statementContext ctx) { 
+		@SuppressWarnings("unused")
 		String code = codeFormat.convertDefineToAssignment(ctx.identifier().getText(), getCode(ctx.constant_expression()));
 	}
 

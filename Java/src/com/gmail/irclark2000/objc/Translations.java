@@ -13,9 +13,18 @@ import java.util.Scanner;
  * 
  */
 public class Translations {
+	/**
+	 *  Name for default translation file.  Currently not configurable
+	 */
 	public static final String TRANSLATIONFILE = "translate.dat";
 
+	/**
+	 *  Map for external ID translations
+	 */
 	public static Map<String, String> EXTERNALSTRINGS = new HashMap<String, String>();
+	/**
+	 * Map for external function simple translations
+	 */
 	public static Map<String, String> EXTERNALFUNCTIONS = new HashMap<String, String>();
 
 	/**

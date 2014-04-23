@@ -20,11 +20,15 @@
 -replaceID  "bool" "boolean"
 -replaceID  "IBAction" "void"
 -replaceID  "IBOutlet" ""
+-replaceID  "NSUserDefaults" "SharedPreferences"
+
 #  Miscellaneous Function Translations
 -replaceFUNC  ".autorelease()" ""
 -replaceFUNC  ".retain()" ""
 -replaceFUNC  "NSNull.null()" "null"
-
+-replaceFUNC  ".release(" "+"
+-replaceFUNC  ".release(" "+"
+-replaceFUNC  "SharedPreferences.standardUserDefaults(" "getSharedPreferences(PREFS_NAME, 0"
 #  String translations
 #
 #  String Identifier Translations
@@ -44,7 +48,7 @@
 -replaceFUNC  "uppercaseString(" "toUpper("
 -replaceFUNC  "lowercaseString(" "toLower("
 -replaceFUNC  "lowercaseString(" "toLower("
--replaceFUNC  ".intValue()" "+Integer.parseInt("
+-replaceFUNC  ".intValue(" "+Integer.parseInt("
 
 #  Array translations
 #
@@ -55,7 +59,7 @@
 -replaceID  "NSMutableSet" "Set<?>"
 
 #  Array Function Translations
--replaceFUNC  "insertObjectatIndex(" "add(-"
+-replaceFUNC  "insertObjectatIndex(" "addReverseArgs("
 -replaceFUNC  "objectAtIndex(" "get("
 -replaceFUNC  "addObject(" "add("
 -replaceFUNC  "removeObject(" "remove("
@@ -67,7 +71,7 @@
 #  Dictionary Identifier Translations
 
 #  Dictionary Function Translations
--replaceFunc  "setObjectforKey(" "put(-"
+-replaceFunc  "setObjectforKey(" "putRevereArgs("
 -replaceFunc  "removeObjectForKey(" "remove("
 -replaceFunc  "removeAllObjects(" "clear("
 -replaceFunc  "objectForKey(" "get("

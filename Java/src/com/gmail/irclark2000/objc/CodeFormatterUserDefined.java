@@ -10,6 +10,7 @@ import java.util.Map;
  */
 public class CodeFormatterUserDefined {
 
+	@SuppressWarnings("serial")
 	static final Map<String , String> SIMPLEUSERDEFINEDSTRINGS = new HashMap<String , String>() {
 	{
 		put("GXXX", "GXXX");
@@ -41,8 +42,6 @@ public class CodeFormatterUserDefined {
 	 * @return rewritten method call
 	 */
 	public String reformatMethodCall(String call, ParseOptions options) {
-		final String connectVariable = "";
-		
 		String proto = String.format("%s", call);
 		if (proto.contains(".setHTTPBody(")) {
 			int index = proto.indexOf(".setHTTPBody(");
@@ -74,7 +73,6 @@ public class CodeFormatterUserDefined {
 			proto += "while((line = rd.readLine()) != null) {\n";
 			proto += response + ".append(line);\n" + response + ".append(\"\\r\");\n}\n";
 			proto += "rd.close()\n //reponse.toString();\n";
-		     
 		}
 		return proto;
 	}
