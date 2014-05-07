@@ -74,6 +74,12 @@ public class CodeFormatterUserDefined {
 			proto += response + ".append(line);\n" + response + ".append(\"\\r\");\n}\n";
 			proto += "rd.close()\n //reponse.toString();\n";
 		}
+		if (proto.contains("NSJSONSerialization.JSONObjectWithDataoptionserror(")) {
+			String aCall = "NSJSONSerialization.JSONObjectWithDataoptionserror(";
+			int index = proto.indexOf(aCall) + aCall.length() - 1;
+			ArrayList<String> args = CodeFormatter.getFunctionArguments(proto.substring(index));
+			proto = "new JSONObject(" + args.get(0) + ")";
+		}
 		return proto;
 	}
 }

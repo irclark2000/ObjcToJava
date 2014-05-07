@@ -21,8 +21,7 @@ grammar ObjC;
 translation_unit: external_declaration+ EOF;
 
 external_declaration:
-comment 
-| preprocessor_declaration
+preprocessor_declaration
 | function_definition
 | declaration 
 | class_interface

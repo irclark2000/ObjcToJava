@@ -41,21 +41,22 @@ public class Translations {
 		} catch (FileNotFoundException e) {
 			return false;
 		}
+		boolean appendNext = false;
 		while (sc.hasNextLine()) {
 			String line = sc.nextLine().trim();
 			if (line.length() == 0 || line.charAt(0) == '#') {
 				continue;
 			}
-			if (line.charAt(0) == '+') {
-				line = line.substring(1);
-				if (lines.size() > 0) {
-					line = lines.get(lines.size() - 1) + line;
-					lines.remove(lines.size() - 1);
-				}
-				lines.add(line);
-			} else {
-				lines.add(line);
+			if (appendNext) {
+				line = lines.get(lines.size() -1) + line;
+				lines.remove(lines.size() - 1);
+				appendNext = false;
 			}
+			if (line.length()-1 == '\\') {
+				appendNext = true;
+				line = line.substring(0, line.length()-1);
+			}
+			lines.add(line);
 		}
 		sc.close();
 		// convert lines to translations
@@ -65,13 +66,16 @@ public class Translations {
 				ArrayList<String> args = splitEscapeUnquote(parts[1]);
 				EXTERNALSTRINGS.put(args.get(0), args.get(1));
 			}
-			if(parts[0].toLowerCase().equals("-replacefunc")) {
+			else if(parts[0].toLowerCase().equals("-replacefunc")) {
 				ArrayList<String> args = splitEscapeUnquote(parts[1]);
 				String arg2 = args.get(1);
 				if (arg2.length() > 0 && arg2.substring(arg2.length()-1).equals("-")) {
 					arg2 = arg2.substring(0, arg2.length()-2) + CodeFormatter.REVERSE_ARGS_MARKER + "(";
 				}
 				EXTERNALFUNCTIONS.put(args.get(0), arg2);
+			}
+			else if (parts[0].toLowerCase().equals("replacecode")) {
+				
 			}
 		}
 		return true;

@@ -110,7 +110,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitTranslation_unit(ObjCParser.Translation_unitContext ctx) {
 		String program = "";
-		
+
 		if (options.getPackageName().length() > 0) {
 			program += "package " + options.getPackageName() + ";\n\n";
 		}
@@ -343,7 +343,11 @@ public class ParserObjcListener extends ObjCBaseListener {
 			ObjCParser.Declaration_minus_semiContext ctx) {
 		String dms = getCode(ctx.declaration_specifiers());
 		if (ctx.init_declarator_list() != null) {
-			dms += " " + getCode(ctx.init_declarator_list());
+			String dCode = makeDecsFromInitDecList(getList(ctx.init_declarator_list()));
+			dms += " " + dCode;
+			if (dCode.contains("=")) {
+				dms = codeFormat.reformatAssignmentStatements(dms);
+			}
 		}
 		setCode(ctx, dms);
 	}
@@ -550,7 +554,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitCategory_interface(ObjCParser.Category_interfaceContext ctx) {
 		String code = ctx.getText();
 		String.format("%s", code);
-		//String decs = "";
+		// String decs = "";
 		String className = getCode(ctx.class_name());
 		@SuppressWarnings("unused")
 		String categoryName = "";
@@ -668,7 +672,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 	/**
 	 * @param classDesc
 	 * @param className
-	 * @param parsingHeader true if we are parsing a header file  
+	 * @param parsingHeader
+	 *            true if we are parsing a header file
 	 * @return a class declaration holder for the given class name
 	 */
 	public static ClassDeclaration chooseMapAndDeclaration(
@@ -737,7 +742,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		methDef = codeFormat.generateConstructor(methDef, cName, options);
 		boolean isInitConstructor = options.isConstructorMethod();
 		if (ctx.init_declarator_list() != null) {
-			methDef += getCode(ctx.init_declarator_list());
+			String decList = makeDecsFromInitDecList(getList(ctx.init_declarator_list()));
+			methDef += decList;
 		}
 		if (!methDef.endsWith(")")) {
 			methDef += "()";
@@ -815,15 +821,24 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitInit_declarator_list(
 			ObjCParser.Init_declarator_listContext ctx) {
-		String iDecs = "";
+		ArrayList<String> dList = new ArrayList<String>();
 		for (Init_declaratorContext dec : ctx.init_declarator()) {
-			if (iDecs.length() == 0) {
-				iDecs = getCode(dec);
-			} else {
-				iDecs += ", " + getCode(dec);
-			}
+			String decCode = getCode(dec);
+			dList.add(decCode);
 		}
-		setCode(ctx, iDecs);
+		setList(ctx, dList);
+	}
+	
+	private String makeDecsFromInitDecList(ArrayList<String> dList) {
+		String iDecs = "";
+		for (String decCode : dList) {
+			if (iDecs.length() == 0) {
+				iDecs = decCode;
+			} else {
+				iDecs += ", " + decCode;
+			}
+		}		
+		return iDecs;
 	}
 
 	@Override
@@ -1223,13 +1238,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String.format("%s", message);
 		String[] parts = getCode(ctx.dotidentifier()).split("\\.");
 		String call = null;
-		for (int i=0; i < parts.length; i++) {
+		for (int i = 0; i < parts.length; i++) {
 			if (i == 0) {
 				call = parts[0];
-			} else if (i < parts.length-2) {
+			} else if (i < parts.length - 2) {
 				call += "." + parts[i];
 			} else {
-				call += ".get" + parts[i].substring(0, 1).toUpperCase() + parts[i].substring(1);  
+				call += ".get" + parts[i].substring(0, 1).toUpperCase()
+						+ parts[i].substring(1);
 			}
 		}
 		setCode(ctx, call);
@@ -1540,11 +1556,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitSelector(ObjCParser.SelectorContext ctx) {
 		String selector = null;
-		
+
 		if (ctx.dotidentifier() != null) {
 			selector = getCode(ctx.getChild(0));
-		}
-		else {
+		} else {
 			selector = getCode(ctx.getChild(0));
 		}
 		setCode(ctx, selector);
@@ -1575,7 +1590,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			op = ctx.assignment_operator().getText();
 			assign = getCode(ctx.assignment_expression());
 		}
-		String stmt = codeFormat.assignment_expression (conditional, op, assign);
+		String stmt = codeFormat.assignment_expression(conditional, op, assign);
 		setCode(ctx, stmt);
 	}
 
@@ -2102,27 +2117,31 @@ public class ParserObjcListener extends ObjCBaseListener {
 		this.classDeclarations = classDescription.getmFiles();
 	}
 
-	// FIXME  do something about define statements
-	
-	@Override public void exitDefine_statement(ObjCParser.Define_statementContext ctx) { 
+	// FIXME do something about define statements
+
+	@Override
+	public void exitDefine_statement(ObjCParser.Define_statementContext ctx) {
 		@SuppressWarnings("unused")
-		String code = codeFormat.convertDefineToAssignment(ctx.identifier().getText(), getCode(ctx.constant_expression()));
+		String code = codeFormat.convertDefineToAssignment(ctx.identifier()
+				.getText(), getCode(ctx.constant_expression()));
 	}
 
-	@Override public void exitPreprocessor_declaration(ObjCParser.Preprocessor_declarationContext ctx) { 
+	@Override
+	public void exitPreprocessor_declaration(
+			ObjCParser.Preprocessor_declarationContext ctx) {
 		String directive = ctx.getChild(0).getText();
 		String expression = null;
 		if (ctx.getChild(1) != null) {
 			if (ctx.expression() != null) {
-				expression = getCode (ctx.expression());
+				expression = getCode(ctx.expression());
 			} else {
 				expression = ctx.getChild(1).getText();
 			}
 		}
-		String code = codeFormat.preProcessorInstructions(directive, expression);
+		String code = codeFormat
+				.preProcessorInstructions(directive, expression);
 		setCode(ctx, code);
 	}
-
 
 	private void writeOutput(String fileName, String code) {
 		try {

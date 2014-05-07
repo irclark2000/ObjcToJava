@@ -555,6 +555,7 @@ public class CodeFormatter {
 	public String assignment_expression(String conditional, String opCode,
 			String assignExpression) {
 		String statement = conditional;
+		boolean useEquals = false;
 		if (opCode != null) {
 			// make sure left side does not contain multiplication
 			String[] parts = statement.split("\\*");
@@ -567,12 +568,14 @@ public class CodeFormatter {
 			}
 			// check for a getter is present where a setter is required
 			else if (opCode.equals("=") && statement.endsWith("()")) {
+				useEquals = true;
 				// double check for a getter
 				String[] dotParts = statement.split("\\.");
 				// double check for a getter
 				if (dotParts.length > 1
 						&& dotParts[dotParts.length - 1].startsWith("get")) {
 					// convert to setter!!
+					useEquals = false;
 					for (int i = 0; i < dotParts.length - 1; i++) {
 						if (i == 0) {
 							statement = dotParts[0].trim();
@@ -586,12 +589,35 @@ public class CodeFormatter {
 							+ ending.substring(1, ending.length() - 2) + "("
 							+ assignExpression + ")";
 				} else { // not a getter use normal code probably wrong!!
+					useEquals = true;
 					statement += " " + opCode + " " + assignExpression;
 				}
 			} else { // normal assignment
+				if (opCode.equals("=")) {
+					useEquals = true;
+				}
 				statement += " " + opCode + " " + assignExpression;
 			}
 		}
+		if (useEquals) {
+			statement = reformatAssignmentStatements(statement);
+		}
+		return statement;
+	}
+
+	/**
+	 * @param statement an assignment statement
+	 * @return reformatted assignment statement
+	 */
+	public String reformatAssignmentStatements(String statement) {
+		if (statement.contains("SharedPreferences")) {
+			String [] parts = statement.split("=", 2);
+			String [] sub1 = parts[0].trim().split(" ");
+			String var = sub1[sub1.length-1];
+			statement += ";\nEditor edit = " + var + ".edit()";
+		}
+		
+		// TODO Auto-generated method stub
 		return statement;
 	}
 
