@@ -67,7 +67,12 @@ public class CodeFormatter {
 
 	public String identifierFormatter(String id, ParseOptions options) {
 		if (options.useExternalTranslations()) {
-			id = makeSimpleIDSubtitutions(Translations.EXTERNALSTRINGS, id);
+			id = makeSimpleIDSubtitutions(
+					Translations.getTranslation(Translations.GLOBALMAPKEY,
+							Translations.TranslationType.ID), id);
+			id = makeSimpleIDSubtitutions(
+					Translations.getTranslation(options.getInputFileName(),
+							Translations.TranslationType.ID), id);
 		} else {
 			id = makeSimpleIDSubtitutions(SIMPLESTRINGS, id);
 		}
@@ -89,9 +94,12 @@ public class CodeFormatter {
 
 	public static String makeSimpleIDSubtitutions(Map<String, String> map,
 			String ID) {
-		String match = map.get(ID);
-		if (match != null) {
-			ID = match;
+		String match = null;
+		if (map != null) {
+			match = map.get(ID);
+			if (match != null) {
+				ID = match;
+			}
 		}
 		return ID;
 
@@ -106,6 +114,10 @@ public class CodeFormatter {
 	 */
 	public static String makeSimpleMethodSubtitutions(Map<String, String> map,
 			String code) {
+		
+		if (map == null) {
+			return code;
+		}
 
 		for (String signature : map.keySet()) {
 			if (code.contains(signature)) {
@@ -115,10 +127,12 @@ public class CodeFormatter {
 					if (replaceCode.length() == 0) {
 						code = "";
 					} else {
-						int index = code.indexOf(signature) + signature.length();
-						ArrayList<String> args = getFunctionArguments(code.substring(index - 1));
+						int index = code.indexOf(signature)
+								+ signature.length();
+						ArrayList<String> args = getFunctionArguments(code
+								.substring(index - 1));
 						String nCode = "";
-						for (int i=0; i < args.size(); i++) {
+						for (int i = 0; i < args.size(); i++) {
 							String arg = args.get(i);
 							if (arg.length() == 0) {
 								continue;
@@ -130,9 +144,11 @@ public class CodeFormatter {
 							}
 						}
 						if (nCode.length() == 0) {
-							nCode = replaceCode + code.substring(0, code.indexOf(signature)); 
+							nCode = replaceCode
+									+ code.substring(0, code.indexOf(signature));
 						} else {
-							nCode += ", " + code.substring(0, code.indexOf(signature));
+							nCode += ", "
+									+ code.substring(0, code.indexOf(signature));
 						}
 						code = nCode + ")";
 					}
@@ -308,8 +324,12 @@ public class CodeFormatter {
 		if (!options.useExternalTranslations()) {
 			proto = makeSimpleMethodSubtitutions(SIMPLEFUNCTIONS, proto);
 		} else {
-			proto = makeSimpleMethodSubtitutions(
-					Translations.EXTERNALFUNCTIONS, proto);
+			proto = makeSimpleMethodSubtitutions(Translations.getTranslation(
+					Translations.GLOBALMAPKEY,
+					Translations.TranslationType.FUNCTION), proto);
+			proto = makeSimpleMethodSubtitutions(Translations.getTranslation(
+					options.getInputFileName(),
+					Translations.TranslationType.FUNCTION), proto);
 		}
 		proto = fixReverseArgs(proto);
 
@@ -467,12 +487,11 @@ public class CodeFormatter {
 		while (call.charAt(start) != openBrace)
 			start++;
 		int end = start + 1;
-		
-		
+
 		while (true) {
-			char cPrior; // the previous character  
+			char cPrior; // the previous character
 			char c = call.charAt(end);
-			cPrior = (end == 0) ? ' ' :  call.charAt(end-1);
+			cPrior = (end == 0) ? ' ' : call.charAt(end - 1);
 			if (!insideQuote && !insideSingleQuote) {
 				if (c == ',') {
 					if (parenCount == 0) {
@@ -606,17 +625,18 @@ public class CodeFormatter {
 	}
 
 	/**
-	 * @param statement an assignment statement
+	 * @param statement
+	 *            an assignment statement
 	 * @return reformatted assignment statement
 	 */
 	public String reformatAssignmentStatements(String statement) {
 		if (statement.contains("SharedPreferences")) {
-			String [] parts = statement.split("=", 2);
-			String [] sub1 = parts[0].trim().split(" ");
-			String var = sub1[sub1.length-1];
+			String[] parts = statement.split("=", 2);
+			String[] sub1 = parts[0].trim().split(" ");
+			String var = sub1[sub1.length - 1];
 			statement += ";\nEditor edit = " + var + ".edit()";
 		}
-		
+
 		// TODO Auto-generated method stub
 		return statement;
 	}

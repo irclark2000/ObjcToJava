@@ -567,6 +567,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitInstance_method_definition(
 			ObjCParser.Instance_method_definitionContext ctx) {
+		String code = ctx.getText();
+		String.format("s", code);
 		String call = getCode(ctx.method_definition());
 		String mDef = "public " + call;
 		Token prior = ctx.getStart();
@@ -721,17 +723,6 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String.format("%s", message);
 		String methDef = "";
 
-		Token prior = ctx.getStart();
-		int indx = prior.getTokenIndex();
-		List<Token> cmtChannel = tokens.getHiddenTokensToLeft(indx,
-				ObjCLexer.COMMENTS);
-		if (cmtChannel != null) {
-			Token cmt = cmtChannel.get(0);
-			if (cmt != null) {
-				String txt = cmt.getText();
-				setComment(ctx, txt);
-			}
-		}
 		if (ctx.method_type() != null) {
 			methDef += getCode(ctx.method_type()) + " ";
 		}

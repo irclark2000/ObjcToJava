@@ -128,6 +128,7 @@ public class Parse {
 		options.setPackageName(packageName);
 		for (String inputFileName : inputFileNames) {
 			baseName = baseNameFromPath(inputFileName);
+			options.setInputFileName(inputFileName);
 			if (inputFileName.length() > 0) {
 				BufferedInputStream instream = null;
 				instream = new BufferedInputStream(new FileInputStream(

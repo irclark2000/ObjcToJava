@@ -12,6 +12,7 @@ import java.util.Map;
 public class ParseOptions {
 	private ArrayList<String> constructorSignatures;
 	private String outputFileName;
+	private String inputFileName;
 	private String className;
 	private String packageName;
 	private String directoryTypes;
@@ -54,6 +55,20 @@ public class ParseOptions {
 	public void setOutputFileName(String outputFileName) {
 		this.outputFileName = outputFileName;
 	}
+	/**
+	 * @return the inputFileName
+	 */
+	public String getInputFileName() {
+		return inputFileName;
+	}
+
+	/**
+	 * @param inputFileName the inputFileName to set
+	 */
+	public void setInputFileName(String inputFileName) {
+		this.inputFileName = inputFileName;
+	}
+
 	/**
 	 * @return class name
 	 */

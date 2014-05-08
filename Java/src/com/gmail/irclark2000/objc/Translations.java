@@ -13,27 +13,19 @@ import java.util.Scanner;
  * 
  */
 public class Translations {
-	/**
-	 *  Name for default translation file.  Currently not configurable
-	 */
+	private static Map<String, TranslationMap> allTranslations = new HashMap<String, TranslationMap>();
+	public static final String GLOBALMAPKEY = "GLOBALMAPKEY";
 	public static final String TRANSLATIONFILE = "translate.dat";
 
 	/**
-	 *  Map for external ID translations
-	 */
-	public static Map<String, String> EXTERNALSTRINGS = new HashMap<String, String>();
-	/**
-	 * Map for external function simple translations
-	 */
-	public static Map<String, String> EXTERNALFUNCTIONS = new HashMap<String, String>();
-
-	/**
 	 * Read id and function translations from an external file
+	 * 
 	 * @param fileName
 	 * @return true if successful at finding translation file
 	 */
 	public static boolean readTranslations(String fileName) {
 		File f = new File(fileName);
+		ArrayList<String> fileNames = new ArrayList<String>();
 		Scanner sc = null;
 		List<String> lines = new ArrayList<String>();
 		try {
@@ -48,34 +40,51 @@ public class Translations {
 				continue;
 			}
 			if (appendNext) {
-				line = lines.get(lines.size() -1) + line;
+				line = lines.get(lines.size() - 1) + line;
 				lines.remove(lines.size() - 1);
 				appendNext = false;
 			}
-			if (line.length()-1 == '\\') {
+			if (line.length() - 1 == '\\') {
 				appendNext = true;
-				line = line.substring(0, line.length()-1);
+				line = line.substring(0, line.length() - 1);
 			}
 			lines.add(line);
 		}
 		sc.close();
 		// convert lines to translations
 		for (String line : lines) {
-			String [] parts = line.split("[\t ]+", 2);
-			if(parts[0].toLowerCase().equals("-replaceid")) {
-				ArrayList<String> args = splitEscapeUnquote(parts[1]);
-				EXTERNALSTRINGS.put(args.get(0), args.get(1));
+			if (line.startsWith("fileNames:")) {
+				String[] parts = line.split(":", 2);
+
 			}
-			else if(parts[0].toLowerCase().equals("-replacefunc")) {
+			String[] parts = line.split("[\t ]+", 2);
+			if (parts[0].toLowerCase().equals("-replaceid")) {
+				ArrayList<String> args = splitEscapeUnquote(parts[1]);
+				saveTranslation(fileNames, TranslationType.ID, args.get(0),
+						args.get(1));
+			} else if (parts[0].toLowerCase().equals("-replacefunc")) {
 				ArrayList<String> args = splitEscapeUnquote(parts[1]);
 				String arg2 = args.get(1);
-				if (arg2.length() > 0 && arg2.substring(arg2.length()-1).equals("-")) {
-					arg2 = arg2.substring(0, arg2.length()-2) + CodeFormatter.REVERSE_ARGS_MARKER + "(";
+				if (arg2.length() > 0
+						&& arg2.substring(arg2.length() - 1).equals("-")) {
+					arg2 = arg2.substring(0, arg2.length() - 2)
+							+ CodeFormatter.REVERSE_ARGS_MARKER + "(";
 				}
-				EXTERNALFUNCTIONS.put(args.get(0), arg2);
-			}
-			else if (parts[0].toLowerCase().equals("replacecode")) {
-				
+				saveTranslation(fileNames, TranslationType.FUNCTION,
+						args.get(0), arg2);
+			} else if (parts[0].toLowerCase().equals("-replaceassign")) {
+				// FIXME: code is not correct
+				ArrayList<String> args = splitEscapeUnquote(parts[1]);
+				String arg2 = args.get(1);
+				if (arg2.length() > 0
+						&& arg2.substring(arg2.length() - 1).equals("-")) {
+					arg2 = arg2.substring(0, arg2.length() - 2)
+							+ CodeFormatter.REVERSE_ARGS_MARKER + "(";
+				}
+				saveTranslation(fileNames, TranslationType.ASSIGNMENT,
+						args.get(0), arg2);
+			} else if (parts[0].toLowerCase().equals("replacecode")) {
+
 			}
 		}
 		return true;
@@ -86,7 +95,7 @@ public class Translations {
 		boolean insideDoubleQuote = false;
 		boolean insideSingleQuote = false;
 		int breakPoint = -1;
-		for (int i=0; i < string.length(); i++) {
+		for (int i = 0; i < string.length(); i++) {
 			char c = string.charAt(i);
 			if (!insideDoubleQuote && !insideSingleQuote) {
 				if (c == ' ' || c == '\t') {
@@ -95,31 +104,31 @@ public class Translations {
 				} else if (c == '\"') {
 					if (i == 0) {
 						insideDoubleQuote = true;
-					} else if (string.charAt(i-1) != '\\') {
+					} else if (string.charAt(i - 1) != '\\') {
 						insideDoubleQuote = true;
 					}
 				} else if (c == '\'') {
 					if (i == 0) {
 						insideSingleQuote = true;
-					} else if (string.charAt(i-1) != '\\') {
+					} else if (string.charAt(i - 1) != '\\') {
 						insideSingleQuote = true;
 					}
 				}
 			} else if (insideDoubleQuote) {
-				if (c == '\"' && string.charAt(i-1) != '\\') {
+				if (c == '\"' && string.charAt(i - 1) != '\\') {
 					insideDoubleQuote = false;
 				}
 			} else if (insideSingleQuote) {
-				if (c == '\'' && string.charAt(i-1) != '\\') {
+				if (c == '\'' && string.charAt(i - 1) != '\\') {
 					insideDoubleQuote = false;
 				}
 			}
 		}
 		if (breakPoint != -1) {
 			String arg1 = string.substring(0, breakPoint).trim();
-			String arg2 = string.substring(breakPoint).trim(); 
-			arg1 = arg1.substring(1, arg1.length()-1);
-			arg2 = arg2.substring(1, arg2.length()-1);
+			String arg2 = string.substring(breakPoint).trim();
+			arg1 = arg1.substring(1, arg1.length() - 1);
+			arg2 = arg2.substring(1, arg2.length() - 1);
 			args.add(unescape(arg1));
 			args.add(unescape(arg2));
 		}
@@ -132,7 +141,74 @@ public class Translations {
 		arg.replaceAll("\\r", "\r");
 		arg.replaceAll("\\\"", "\"");
 		arg.replaceAll("\\\'", "\'");
-//		arg.replaceAll("\\\\", "\\");
+		// arg.replaceAll("\\\\", "\\");
 		return arg;
 	}
+
+	public static class TranslationMap {
+		Map<String, String> functionMap;
+		Map<String, String> identificationMap;
+		Map<String, String> assignMap;
+
+		TranslationMap() {
+			functionMap = new HashMap<String, String>();
+			identificationMap = new HashMap<String, String>();
+			assignMap = new HashMap<String, String>();
+		}
+
+		private Map<String, String> getTranslation(TranslationType type) {
+			Map<String, String> myMap = null;
+			switch (type) {
+			case FUNCTION:
+				myMap = functionMap;
+				break;
+			case ID:
+				myMap = identificationMap;
+				break;
+			case ASSIGNMENT:
+				myMap = assignMap;
+				break;
+
+			}
+			return myMap;
+		}
+	}
+
+	/**
+	 * @param fileName
+	 * @param type
+	 * @return the corresponding map for the filename and type; null if not found
+	 */
+	public static Map<String, String> getTranslation(String fileName,
+			TranslationType type) {
+		TranslationMap mp = allTranslations.get(fileName);
+		if (mp == null) {
+			return null;
+		}
+		return mp.getTranslation(type);		
+	}
+
+	private static void saveTranslation(ArrayList<String> files,
+			TranslationType type, String match, String code) {
+		ArrayList<String> fileList = new ArrayList<String>();
+		if (fileList.size() == 0) {
+			fileList.add(GLOBALMAPKEY);
+		} else {
+			fileList.addAll(files);
+		}
+		TranslationMap myMaps = null;
+		for (String key : fileList) {
+			myMaps = allTranslations.get(key);
+			if (myMaps == null) {
+				myMaps = new TranslationMap();
+				allTranslations.put(key, myMaps);
+			}
+			Map<String, String> myTranslation = myMaps.getTranslation(type);
+			myTranslation.put(match, code);
+		}
+	}
+
+	public enum TranslationType {
+		FUNCTION, ID, ASSIGNMENT
+	};
 }
