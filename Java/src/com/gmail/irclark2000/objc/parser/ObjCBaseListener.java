@@ -91,9 +91,6 @@ public class ObjCBaseListener implements ObjCListener {
 	@Override public void enterMethod_definition(ObjCParser.Method_definitionContext ctx) { }
 	@Override public void exitMethod_definition(ObjCParser.Method_definitionContext ctx) { }
 
-	@Override public void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
-	@Override public void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx) { }
-
 	@Override public void enterForcomplete2(ObjCParser.Forcomplete2Context ctx) { }
 	@Override public void exitForcomplete2(ObjCParser.Forcomplete2Context ctx) { }
 
@@ -114,6 +111,9 @@ public class ObjCBaseListener implements ObjCListener {
 
 	@Override public void enterInclusive_or_expression(ObjCParser.Inclusive_or_expressionContext ctx) { }
 	@Override public void exitInclusive_or_expression(ObjCParser.Inclusive_or_expressionContext ctx) { }
+
+	@Override public void enterStructTypeSpec(ObjCParser.StructTypeSpecContext ctx) { }
+	@Override public void exitStructTypeSpec(ObjCParser.StructTypeSpecContext ctx) { }
 
 	@Override public void enterConstant_expression(ObjCParser.Constant_expressionContext ctx) { }
 	@Override public void exitConstant_expression(ObjCParser.Constant_expressionContext ctx) { }
@@ -249,6 +249,9 @@ public class ObjCBaseListener implements ObjCListener {
 
 	@Override public void enterProperty_attribute(ObjCParser.Property_attributeContext ctx) { }
 	@Override public void exitProperty_attribute(ObjCParser.Property_attributeContext ctx) { }
+
+	@Override public void enterCode_block(ObjCParser.Code_blockContext ctx) { }
+	@Override public void exitCode_block(ObjCParser.Code_blockContext ctx) { }
 
 	@Override public void enterJump_statement(ObjCParser.Jump_statementContext ctx) { }
 	@Override public void exitJump_statement(ObjCParser.Jump_statementContext ctx) { }

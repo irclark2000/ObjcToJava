@@ -1019,7 +1019,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitDeclaration_specifier(
 			ObjCParser.Declaration_specifierContext ctx) {
-		setCode(ctx, getCode(ctx.getChild(0)));
+		String message = ctx.getText();
+		String.format("%s", message);
+		String code = getCode(ctx.getChild(0));
+		setCode(ctx, code);
 	}
 
 	@Override
@@ -1102,7 +1105,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String.format("%s", message);
 		String states = "";
 		for (StatementContext stmt : ctx.statement()) {
-			states += getCode(stmt);
+			String code = codeFormat.applyRegexToStatement(getCode(stmt), options);
+			states += code;
 		}
 		setCode(ctx, states);
 	}
@@ -1455,7 +1459,35 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitUnusual_type_specifier(
 			ObjCParser.Unusual_type_specifierContext ctx) {
-		setCode(ctx, "");
+		String code = getCode(ctx.getChild(0));
+		setCode(ctx, code);
+	}
+	
+	@Override public void exitStruct_or_union_specifier(ObjCParser.Struct_or_union_specifierContext ctx) { 
+		String message = ctx.getText();
+		String.format("%s", message);
+		String code = "public static class ";
+		
+		if (ctx.IDENTIFIER() != null) {
+			   code += ctx.IDENTIFIER().getText();
+		}
+		if (ctx.struct_declaration()!= null) {
+			if (ctx.identifier(0) != null) {
+			   code += getCode(ctx.identifier(0));
+			}
+			code = code += " {\n";
+			for (Struct_declarationContext sd : ctx.struct_declaration()) {
+				ArrayList<String> decParts = getList(sd);
+				for (String part : decParts) {
+					code += part;
+				}
+				code += ";\n";
+			}
+			
+			code += "}\n";
+			
+		}	
+		setCode (ctx, code);
 	}
 
 	// protocol reference list stuff not handled for now
@@ -1482,6 +1514,12 @@ public class ParserObjcListener extends ObjCBaseListener {
 			ObjCParser.IgnoreTypeQualifierContext ctx) {
 		setCode(ctx, "");
 	}
+	
+	@Override public void exitStructTypeSpec(ObjCParser.StructTypeSpecContext ctx) { 
+		String code = getCode(ctx.unusual_type_specifier());
+		setCode (ctx, code);
+	}
+
 
 	@Override
 	public void exitConstant(ObjCParser.ConstantContext ctx) {
@@ -2092,6 +2130,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 		setCode(ctx, "");
 	}
 
+	@Override public void exitEncode_expression(ObjCParser.Encode_expressionContext ctx) { 
+		String message = ctx.getText();
+		String.format("%s", message);
+		String code = getCode(ctx.type_name());
+		code += ".getClass().getName()";
+		setCode(ctx, code);
+	}
+
 	ParserObjcListener() {
 		this.classDescription = new ClassDescription();
 		this.headerDeclarations = classDescription.getHeaders();
@@ -2115,6 +2161,12 @@ public class ParserObjcListener extends ObjCBaseListener {
 		@SuppressWarnings("unused")
 		String code = codeFormat.convertDefineToAssignment(ctx.identifier()
 				.getText(), getCode(ctx.constant_expression()));
+	}
+	@Override public void exitCode_block(ObjCParser.Code_blockContext ctx) { 
+		String cd = ctx.getText();
+		String.format("%s", cd);
+		
+		setCode(ctx, "");
 	}
 
 	@Override

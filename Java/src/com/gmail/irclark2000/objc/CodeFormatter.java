@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Isaac Clark Reformats code as needed after parsing
@@ -114,7 +116,7 @@ public class CodeFormatter {
 	 */
 	public static String makeSimpleMethodSubtitutions(Map<String, String> map,
 			String code) {
-		
+
 		if (map == null) {
 			return code;
 		}
@@ -234,6 +236,43 @@ public class CodeFormatter {
 	}
 
 	/**
+	 * @param statement
+	 * @param options
+	 * @return statements after applying regular expression translations
+	 */
+	public String applyRegexToStatement(String statement, ParseOptions options) {
+		String fName = options.getInputFileName();
+		statement = applyRegex(Translations.getTranslation(
+				Translations.GLOBALMAPKEY, Translations.TranslationType.REGEX),
+				statement);
+		statement = applyRegex(Translations.getTranslation(fName,
+				Translations.TranslationType.REGEX), statement);
+		return statement;
+	}
+
+	private String applyRegex(Map<String, String> transMap, String statement) {
+		String code = String.format("%s", statement);
+		if (transMap != null) {
+			for (String regex : transMap.keySet()) {
+				Pattern pattern = Pattern.compile(regex);
+				Matcher matcher = pattern.matcher(code);
+				if (matcher.matches()) {
+					code = replaceCodeWithPattern(matcher, code,
+							transMap.get(regex));
+					break;
+				}
+			}
+		}
+		return code;
+	}
+
+	private String replaceCodeWithPattern(Matcher matcher, String statement,
+			String pattern) {
+		String code = pattern;
+		return code;
+	}
+
+	/**
 	 * Note that for constructor methods starting with init a flag is set to
 	 * true allowing some additional treatment if smartConstructor is turned on
 	 * 
@@ -290,6 +329,17 @@ public class CodeFormatter {
 		}
 		for (String signature : signatures) {
 			if (proto.contains(signature)) {
+				// We must be more sophisticated about init
+				if (signature.equals("init")) {
+					int indx = proto.indexOf("init") + 4;
+					if (indx < proto.length()) {
+						char c = proto.charAt(indx);
+						if (c != '(' && Character.isLowerCase(c)) {
+							// !!not a constructor
+							continue;
+						}
+					}
+				}
 				int start = proto.indexOf(signature) - 1;
 				int end = start + signature.length() - 1;
 				while (proto.charAt(end) != '(')
@@ -653,10 +703,12 @@ public class CodeFormatter {
 	 */
 	public String convertDefineToAssignment(String text, String code) {
 		String stmt = text + " = " + code + ";";
-		if (code.charAt(0) == '\"') {
-			stmt = "String " + stmt;
-		} else {
-			stmt = "Number " + stmt;
+		if (!code.isEmpty()) {
+			if (code.charAt(0) == '\"') {
+				stmt = "String " + stmt;
+			} else {
+				stmt = "Number " + stmt;
+			}
 		}
 		return stmt;
 	}

@@ -106,6 +106,7 @@ public class Parse {
 			options.setParsingheader(true);
 			for (String headerFileName : headerFileNames) {
 				baseName = baseNameFromPath(headerFileName);
+				options.setInputFileName(headerFileName);
 				options.setClassName(baseName);
 				cd.setTempClassName(baseName);
 				BufferedInputStream instream = null;

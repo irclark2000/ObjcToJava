@@ -88,9 +88,6 @@ public interface ObjCListener extends ParseTreeListener {
 	void enterMethod_definition(ObjCParser.Method_definitionContext ctx);
 	void exitMethod_definition(ObjCParser.Method_definitionContext ctx);
 
-	void enterIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
-	void exitIngoreTypeSpec(ObjCParser.IngoreTypeSpecContext ctx);
-
 	void enterForcomplete2(ObjCParser.Forcomplete2Context ctx);
 	void exitForcomplete2(ObjCParser.Forcomplete2Context ctx);
 
@@ -111,6 +108,9 @@ public interface ObjCListener extends ParseTreeListener {
 
 	void enterInclusive_or_expression(ObjCParser.Inclusive_or_expressionContext ctx);
 	void exitInclusive_or_expression(ObjCParser.Inclusive_or_expressionContext ctx);
+
+	void enterStructTypeSpec(ObjCParser.StructTypeSpecContext ctx);
+	void exitStructTypeSpec(ObjCParser.StructTypeSpecContext ctx);
 
 	void enterConstant_expression(ObjCParser.Constant_expressionContext ctx);
 	void exitConstant_expression(ObjCParser.Constant_expressionContext ctx);
@@ -246,6 +246,9 @@ public interface ObjCListener extends ParseTreeListener {
 
 	void enterProperty_attribute(ObjCParser.Property_attributeContext ctx);
 	void exitProperty_attribute(ObjCParser.Property_attributeContext ctx);
+
+	void enterCode_block(ObjCParser.Code_blockContext ctx);
+	void exitCode_block(ObjCParser.Code_blockContext ctx);
 
 	void enterJump_statement(ObjCParser.Jump_statementContext ctx);
 	void exitJump_statement(ObjCParser.Jump_statementContext ctx);

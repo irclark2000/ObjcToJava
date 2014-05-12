@@ -10,11 +10,15 @@ import java.util.Scanner;
 
 /**
  * @author Isaac Clark read translations from external file
+ * and produce them on demand
  * 
  */
 public class Translations {
 	private static Map<String, TranslationMap> allTranslations = new HashMap<String, TranslationMap>();
 	public static final String GLOBALMAPKEY = "GLOBALMAPKEY";
+	/**
+	 *  name of default external translation file
+	 */
 	public static final String TRANSLATIONFILE = "translate.dat";
 
 	/**
@@ -55,7 +59,9 @@ public class Translations {
 		for (String line : lines) {
 			if (line.startsWith("fileNames:")) {
 				String[] parts = line.split(":", 2);
-
+				if (parts.length > 2 && !parts[1].trim().isEmpty()) {
+					
+				}
 			}
 			String[] parts = line.split("[\t ]+", 2);
 			if (parts[0].toLowerCase().equals("-replaceid")) {
@@ -72,17 +78,10 @@ public class Translations {
 				}
 				saveTranslation(fileNames, TranslationType.FUNCTION,
 						args.get(0), arg2);
-			} else if (parts[0].toLowerCase().equals("-replaceassign")) {
-				// FIXME: code is not correct
+			} else if (parts[0].toLowerCase().equals("-replaceregex")) {
 				ArrayList<String> args = splitEscapeUnquote(parts[1]);
-				String arg2 = args.get(1);
-				if (arg2.length() > 0
-						&& arg2.substring(arg2.length() - 1).equals("-")) {
-					arg2 = arg2.substring(0, arg2.length() - 2)
-							+ CodeFormatter.REVERSE_ARGS_MARKER + "(";
-				}
-				saveTranslation(fileNames, TranslationType.ASSIGNMENT,
-						args.get(0), arg2);
+				saveTranslation(fileNames, TranslationType.REGEX, args.get(0),
+						args.get(1));
 			} else if (parts[0].toLowerCase().equals("replacecode")) {
 
 			}
@@ -136,24 +135,29 @@ public class Translations {
 	}
 
 	private static String unescape(String arg) {
-		arg.replaceAll("\\n", "\n");
-		arg.replaceAll("\\t", "\t");
-		arg.replaceAll("\\r", "\r");
-		arg.replaceAll("\\\"", "\"");
-		arg.replaceAll("\\\'", "\'");
+		arg = arg.replaceAll("\\n", "\n");
+		arg = arg.replaceAll("\\t", "\t");
+		arg = arg.replaceAll("\\r", "\r");
+		arg = arg.replaceAll("\\\"", "\"");
+		arg = arg.replaceAll("\\\'", "\'");
 		// arg.replaceAll("\\\\", "\\");
 		return arg;
 	}
 
+	/**
+	 * @author Isaac Clark
+	 * Holds the set of mappings for a set of files
+	 *
+	 */
 	public static class TranslationMap {
 		Map<String, String> functionMap;
 		Map<String, String> identificationMap;
-		Map<String, String> assignMap;
+		Map<String, String> regexMap;
 
 		TranslationMap() {
 			functionMap = new HashMap<String, String>();
 			identificationMap = new HashMap<String, String>();
-			assignMap = new HashMap<String, String>();
+			regexMap = new HashMap<String, String>();
 		}
 
 		private Map<String, String> getTranslation(TranslationType type) {
@@ -165,8 +169,8 @@ public class Translations {
 			case ID:
 				myMap = identificationMap;
 				break;
-			case ASSIGNMENT:
-				myMap = assignMap;
+			case REGEX:
+				myMap = regexMap;
 				break;
 
 			}
@@ -208,7 +212,11 @@ public class Translations {
 		}
 	}
 
+	/**
+	 * @author Isaac Clark
+	 *
+	 */
 	public enum TranslationType {
-		FUNCTION, ID, ASSIGNMENT
+		FUNCTION, ID, REGEX
 	};
 }

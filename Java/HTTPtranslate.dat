@@ -12,6 +12,7 @@
 -replaceID  "NSHTTPURLResponse" "StringBuffer"
 -replaceID  "NSURLRequestReloadIgnoringCacheData" "false"
 -replaceID  "NSURLRequestUseProtocolCachePolicy" "true"
+-replaceID  "PREFS_NAME" "StorageService.PREFS_NAME"
 
 #  HTTP Function Translations
 -replaceFUNC  "setHTTPMethod(" "setRequestMethod("
@@ -21,5 +22,9 @@
 -replaceFUNC  "addValueforHTTPHeaderField(" "addRequestPropertyReverseArgs("
 -replaceFUNC  ".stringByAddingPercentEscapesUsingEncoding(" "+URLEncoder.encodeReverseArgs("
 -replaceFUNC  "queue.addOperation(" "queue.performOperations("
--replaceFUNC  "defaults.get(" "defaults.getString(\"\", "
+-replaceFUNC  "defaults.get(" "defaults.getStringReverseArgs(\"\", "
+-replaceFUNC  "defaults.synchronize(" "edit.apply("
+-replaceFUNC  "defaults.put(" "editor.putStringReverseArgs("
+-replaceFUNC  "dFile.delegate(" "dFile.getHandler("
+-replaceFUNC  ".keySet().contains(" ".has("
 

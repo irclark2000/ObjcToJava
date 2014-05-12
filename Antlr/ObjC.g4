@@ -188,7 +188,7 @@ instance_method_definition:
 	;
 	
 method_definition:
-	(method_type)? method_selector (init_declarator_list)? compound_statement;
+	(method_type)? method_selector (init_declarator_list)? (';')? compound_statement ;
 
 method_selector:
 	selector |(keyword_declarator+ (parameter_list)? )
@@ -224,7 +224,7 @@ type_specifier:
 other_type_specifier :
 		('id' ( protocol_reference_list )? )  #idTypeSpec
 	|	(class_name ( protocol_reference_list )?) #classTypeSpec
-	|	unusual_type_specifier #ingoreTypeSpec
+	|	unusual_type_specifier #structTypeSpec
   ;
 unusual_type_specifier :
 	struct_or_union_specifier
@@ -261,6 +261,8 @@ simple_expression :
 	| message_expression
 	| getter_call
 	| self_expression
+	| code_block
+	| encode_expression
 
 ;
 
@@ -353,7 +355,7 @@ init_declarator_list :	init_declarator (',' init_declarator)* ;
 init_declarator : declarator ('=' initializer)? ;
 
 struct_or_union_specifier: ('struct' | 'union') 
-  ( IDENTIFIER | IDENTIFIER? '{' struct_declaration+ '}') ;
+  ( IDENTIFIER | identifier? '{' struct_declaration+ '}' identifier?) ;
 
 struct_declaration : specifier_qualifier_list struct_declarator_list ';' ;
 
@@ -361,7 +363,7 @@ specifier_qualifier_list : (specifier_qualifier)+ ;
 
 specifier_qualifier : type_specifier | type_qualifier ;
 
-struct_declarator_list : struct_declarator (',' struct_declarator)* ;
+struct_declarator_list : struct_declarator (',' struct_declarator)*  ;
 
 struct_declarator : declarator | declarator? ':' constant;
 
@@ -385,7 +387,7 @@ parameter_declaration
   : declaration_specifiers (declarator? | abstract_declarator) ;
 
 initializer : assignment_expression
-	    | '{' initializer (',' initializer)* '}' ;
+	    | '{' initializer (',' initializer)* (',')? '}' (',')? ;
 
 type_name : specifier_qualifier_list abstract_declarator ;
 
@@ -425,7 +427,7 @@ labeled_statement
   | 'case' constant_expression ':' statement #case
   | 'default' ':' statement #default ;   
 
-compound_statement : '{' (compound_statement_parts)* '}' ;
+compound_statement :  ('@autoreleasepool')?'{' (compound_statement_parts)* '}' ;
 compound_statement_parts : declaration|statement_list ;
 
 selection_statement
@@ -563,6 +565,8 @@ argument_expression_list
   : assignment_expression (',' assignment_expression)* ;
 
 identifier : IDENTIFIER;
+
+code_block : '^' statement ;
 
 constant : DECIMAL_LITERAL | HEX_LITERAL | OCTAL_LITERAL | CHARACTER_LITERAL | FLOATING_POINT_LITERAL;
 
