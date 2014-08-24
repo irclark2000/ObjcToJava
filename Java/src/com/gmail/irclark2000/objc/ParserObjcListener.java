@@ -1847,11 +1847,14 @@ public class ParserObjcListener extends ObjCBaseListener {
 
 	@Override
 	public void exitPostfix_expression(ObjCParser.Postfix_expressionContext ctx) {
+		String code = ctx.getText();
+		String.format("%s", code);
 		String pFix = getCode(ctx.primary_expression());
 		if (ctx.postfix_expression_complete() != null) {
 			for (Postfix_expression_completeContext fc : ctx
 					.postfix_expression_complete()) {
 				pFix += getCode(fc);
+				pFix = codeFormat.reformatMethodCall(pFix, options);
 			}
 		}
 		setCode(ctx, pFix);

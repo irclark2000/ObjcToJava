@@ -1,0 +1,38 @@
+# Define translations performed by program
+# translates functions and identifiers
+#
+
+#  OPENGL translations
+#
+#  OPENGL Identifier Translations
+-replaceID  "GLKMatrix4" "float []" 
+-replaceID  "NSURL" "URL"
+-replaceID  "NSURLRequest" "HttpURLConnection"
+-replaceID  "NSMutableURLRequest" "HttpURLConnection"
+-replaceID  "NSHTTPURLResponse" "StringBuffer"
+-replaceID  "NSURLRequestReloadIgnoringCacheData" "false"
+-replaceID  "NSURLRequestUseProtocolCachePolicy" "true"
+-replaceID  "PREFS_NAME" "StorageService.PREFS_NAME"
+-replaceID  "GLKMatrix4Identity" "MatrixMath.Matrix4Identity()"
+
+#  OPENGL Function Translations
+-replaceFUNC  "GLKMatrix4Rotate(" "MatrixMath.Matrix4Rotate("
+-replaceFUNC  "GLKMatrix4InvertAndTranspose(" "MatrixMath.Matrix4InvertAndTranspose("
+-replaceFunc "GLKMatrix4MakePerspective(" "MatrixMath.Matrix4MakePerspective("
+-replaceFunc "GLKMatrix4MakeLookAt(" "MatrixMath.Matrix4MakeLookAt("
+-replaceFunc "GLKMatrix4Multiply(" "MatrixMath.Matrix4Multiply("
+-replaceFunc "GLKMatrix4InvertAndTranspose(" "MatrixMath.Matrix4InvertAndTranspose("
+-replaceFunc "GLKMatrix4MakePerspective(" "MatrixMath.Matrix4MakePerspective("
+-replaceFunc "GLKMathDegreesToRadians(" "MatrixMath.MathDegreesToRadians("
+-replaceFunc "GLKMatrix4MakeLookAt(" "MatrixMath.Matrix4MakeLookAt("
+-replaceFunc "GLKMatrix4TranslateWithVector3(" "MatrixMath.Matrix4TranslateWithVector3("
+-replaceFunc "GLKMatrix4Scale(" "MatrixMath.Matrix4Scale("
+
+-replaceFUNC  ".stringByAddingPercentEscapesUsingEncoding(" "+URLEncoder.encodeReverseArgs("
+-replaceFUNC  "queue.addOperation(" "queue.performOperations("
+-replaceFUNC  "defaults.get(" "defaults.getStringReverseArgs(\"\", "
+-replaceFUNC  "defaults.synchronize(" "edit.apply("
+-replaceFUNC  "defaults.put(" "editor.putStringReverseArgs("
+-replaceFUNC  "dFile.delegate(" "dFile.getHandler("
+-replaceFUNC  ".keySet().contains(" ".has("
+
