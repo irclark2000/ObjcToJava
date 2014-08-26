@@ -1681,7 +1681,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String logic = getCode(ctx.exclusive_or_expression(0));
 		for (int i = 1; i < ctx.exclusive_or_expression().size(); i++) {
 
-			logic += " || " + getCode(ctx.exclusive_or_expression(i));
+			logic += " | " + getCode(ctx.exclusive_or_expression(i));
 		}
 		setCode(ctx, logic);
 	}

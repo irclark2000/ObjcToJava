@@ -6,6 +6,9 @@
 #
 #  OPENGL Identifier Translations
 -replaceID  "GLKMatrix4" "float []" 
+-replaceID  "GLKVector4" "float []" 
+-replaceID  "GLKVector3" "float []" 
+-replaceID  "GLKVector2" "float []" 
 -replaceID  "NSURL" "URL"
 -replaceID  "NSURLRequest" "HttpURLConnection"
 -replaceID  "NSMutableURLRequest" "HttpURLConnection"
@@ -27,6 +30,8 @@
 -replaceFunc "GLKMatrix4MakeLookAt(" "MatrixMath.Matrix4MakeLookAt("
 -replaceFunc "GLKMatrix4TranslateWithVector3(" "MatrixMath.Matrix4TranslateWithVector3("
 -replaceFunc "GLKMatrix4Scale(" "MatrixMath.Matrix4Scale("
+-replaceFunc "GLKVector3Make(" "MatrixMath.Vector3Make("
+-replaceFunc "GLKVector2Make(" "MatrixMath.Vector2Make("
 
 -replaceFUNC  ".stringByAddingPercentEscapesUsingEncoding(" "+URLEncoder.encodeReverseArgs("
 -replaceFUNC  "queue.addOperation(" "queue.performOperations("

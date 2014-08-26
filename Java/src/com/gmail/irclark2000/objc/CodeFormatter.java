@@ -17,8 +17,8 @@ public class CodeFormatter {
 	 * Marker for identifying method needing reversed pair of arguments.
 	 */
 	public static final String REVERSE_ARGS_MARKER = "ReverseArgs";
-	private static final String SETTER = "\n%s get%s() {\nreturn this.%s; \n}\n";
-	private static final String GETTER = "\nvoid set%s(%s %s) {\nthis.%s = %s;\n}\n";
+	private static final String SETTER = "\n%s %s get%s() {\nreturn this.%s; \n}\n";
+	private static final String GETTER = "\n%s void set%s(%s %s) {\nthis.%s = %s;\n}\n";
 	private ArrayList<String> constructorSignalsList;
 
 	private CodeFormatterString stringFormat = new CodeFormatterString();
@@ -179,7 +179,8 @@ public class CodeFormatter {
 		for (String syn : synths) {
 			String type = getPropertyType(syn, className, cd, cDec);
 			if (type.length() > 0) {
-				String getSet = makeSetGet(syn, type);
+				String [] parts = type.split(":");
+				String getSet = makeSetGet(syn, parts[0], parts[1]);
 				code.add(getSet);
 			}
 			// code.add(fixDeclarations(c));
@@ -188,11 +189,15 @@ public class CodeFormatter {
 		return code;
 	}
 
-	private String makeSetGet(String vName, String type) {
+	private String makeSetGet(String vName, String type, String visibility) {
 		String code = "";
+		if (visibility == null) {
+			// this should never happen
+			visibility = "";
+		}
 		String vCap = vName.substring(0, 1).toUpperCase() + vName.substring(1);
-		code = String.format(SETTER, type, vCap, vName);
-		code += String.format(GETTER, vCap, type, vName, vName, vName);
+		code = String.format(SETTER, visibility, type, vCap, vName);
+		code += String.format(GETTER, visibility, vCap, type, vName, vName, vName);
 		return code;
 	}
 
@@ -200,22 +205,27 @@ public class CodeFormatter {
 			ClassDescription cd, ClassDescription.ClassDeclaration cDecl) {
 		String type = "";
 		ClassDescription.ClassDeclaration cDec = null;
+		String prefix = "";
 		for (int i = 0; i < 4; i++) {
 			switch (i) {
 			case 0:
 				cDec = ParserObjcListener.chooseMapAndDeclaration(cd,
 						className, false);
+				prefix = "private";
 				break;
 			case 1:
 				cDec = ParserObjcListener.chooseMapAndDeclaration(cd,
 						className, true);
+				prefix = "public";
 				break;
 			case 2:
 				cDec = ParserObjcListener
 						.chooseMapAndDeclaration(cd, "", false);
+				prefix = "private";
 				break;
 			case 3:
 				cDec = ParserObjcListener.chooseMapAndDeclaration(cd, "", true);
+				prefix = "public";
 				break;
 			}
 			if (cDec != null) {
@@ -226,6 +236,10 @@ public class CodeFormatter {
 						type = parts[0];
 						for (int j = 1; j < parts.length - 1; j++) {
 							type += " " + parts[j];
+						}
+						if (type.length() > 0) {
+							// append visibility to prefix
+							type = type + ":" + prefix;
 						}
 						return type;
 					}
