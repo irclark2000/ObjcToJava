@@ -211,6 +211,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 		ClassDescription.ClassDeclaration globalHeaderDec = ClassDeclaration
 				.getClassDeclaration(headerDeclarations, cName
 						+ GLOBAL_DECLARATION_MARKER + "header");
+
+		// add a TAG
+		myClass += "\n\tprivate final String TAG = \"" + cName + "\";";
+
 		// get methods first
 		if (currentDec != null) {
 			for (String method : currentDec.getMethod_definitions()) {
@@ -343,7 +347,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 			ObjCParser.Declaration_minus_semiContext ctx) {
 		String dms = getCode(ctx.declaration_specifiers());
 		if (ctx.init_declarator_list() != null) {
-			String dCode = makeDecsFromInitDecList(getList(ctx.init_declarator_list()));
+			String dCode = makeDecsFromInitDecList(getList(ctx
+					.init_declarator_list()));
 			dms += " " + dCode;
 			if (dCode.contains("=")) {
 				dms = codeFormat.reformatAssignmentStatements(dms);
@@ -458,6 +463,11 @@ public class ParserObjcListener extends ObjCBaseListener {
 			String dec = "static " + getCode(ctx.declaration());
 			cd.addVariable(dec);
 			setCode(ctx, "");
+
+		} else if (ctx.protocol_declaration() != null) {
+			writeProtocols(options.getOutputFileName(),
+					getList(ctx.protocol_declaration()));
+			// ClassDescription.ClassDeclaration cd2 = getDeclaration
 		} else {
 			ArrayList<String> code = getList(ctx.getChild(0));
 			setList(ctx, code);
@@ -596,22 +606,28 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitClass_method_declaration(
 			ObjCParser.Class_method_declarationContext ctx) {
-		setCode(ctx, "public static " + getCode(ctx.getChild(0)));
+		String code = getCode(ctx.getChild(1));
+		setCode(ctx, "public static " + code);
 	}
 
 	@Override
 	public void exitInstance_method_declaration(
 			ObjCParser.Instance_method_declarationContext ctx) {
-		setCode(ctx, getCode(ctx.getChild(0)));
+		String message = ctx.getText();
+		String.format("%s", message);
+		String code = getCode(ctx.method_declaration());
+		setCode(ctx, code);
 	}
 
 	@Override
 	public void exitMethod_declaration(ObjCParser.Method_declarationContext ctx) {
+		String message = ctx.getText();
+		String.format("%s", message);
 		String method = "";
 		if (ctx.method_type() != null) {
 			method = getCode(ctx.method_type());
 		}
-		if (method.length() != 0) {
+		if (method.length() == 0) {
 			method = getCode(ctx.method_selector());
 		} else {
 			method += " " + getCode(ctx.method_selector());
@@ -733,7 +749,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		methDef = codeFormat.generateConstructor(methDef, cName, options);
 		boolean isInitConstructor = options.isConstructorMethod();
 		if (ctx.init_declarator_list() != null) {
-			String decList = makeDecsFromInitDecList(getList(ctx.init_declarator_list()));
+			String decList = makeDecsFromInitDecList(getList(ctx
+					.init_declarator_list()));
 			methDef += decList;
 		}
 		if (!methDef.endsWith(")")) {
@@ -819,7 +836,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 		}
 		setList(ctx, dList);
 	}
-	
+
 	private String makeDecsFromInitDecList(ArrayList<String> dList) {
 		String iDecs = "";
 		for (String decCode : dList) {
@@ -828,7 +845,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 			} else {
 				iDecs += ", " + decCode;
 			}
-		}		
+		}
 		return iDecs;
 	}
 
@@ -1105,7 +1122,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String.format("%s", message);
 		String states = "";
 		for (StatementContext stmt : ctx.statement()) {
-			String code = codeFormat.applyRegexToStatement(getCode(stmt), options);
+			String code = codeFormat.applyRegexToStatement(getCode(stmt),
+					options);
 			states += code;
 		}
 		setCode(ctx, states);
@@ -1462,18 +1480,20 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String code = getCode(ctx.getChild(0));
 		setCode(ctx, code);
 	}
-	
-	@Override public void exitStruct_or_union_specifier(ObjCParser.Struct_or_union_specifierContext ctx) { 
+
+	@Override
+	public void exitStruct_or_union_specifier(
+			ObjCParser.Struct_or_union_specifierContext ctx) {
 		String message = ctx.getText();
 		String.format("%s", message);
 		String code = "public static class ";
-		
+
 		if (ctx.IDENTIFIER() != null) {
-			   code += ctx.IDENTIFIER().getText();
+			code += ctx.IDENTIFIER().getText();
 		}
-		if (ctx.struct_declaration()!= null) {
+		if (ctx.struct_declaration() != null) {
 			if (ctx.identifier(0) != null) {
-			   code += getCode(ctx.identifier(0));
+				code += getCode(ctx.identifier(0));
 			}
 			code = code += " {\n";
 			for (Struct_declarationContext sd : ctx.struct_declaration()) {
@@ -1483,11 +1503,11 @@ public class ParserObjcListener extends ObjCBaseListener {
 				}
 				code += ";\n";
 			}
-			
+
 			code += "}\n";
-			
-		}	
-		setCode (ctx, code);
+
+		}
+		setCode(ctx, code);
 	}
 
 	// protocol reference list stuff not handled for now
@@ -1514,12 +1534,12 @@ public class ParserObjcListener extends ObjCBaseListener {
 			ObjCParser.IgnoreTypeQualifierContext ctx) {
 		setCode(ctx, "");
 	}
-	
-	@Override public void exitStructTypeSpec(ObjCParser.StructTypeSpecContext ctx) { 
-		String code = getCode(ctx.unusual_type_specifier());
-		setCode (ctx, code);
-	}
 
+	@Override
+	public void exitStructTypeSpec(ObjCParser.StructTypeSpecContext ctx) {
+		String code = getCode(ctx.unusual_type_specifier());
+		setCode(ctx, code);
+	}
 
 	@Override
 	public void exitConstant(ObjCParser.ConstantContext ctx) {
@@ -1983,9 +2003,10 @@ public class ParserObjcListener extends ObjCBaseListener {
 	public void exitInterface_declaration_list(
 			ObjCParser.Interface_declaration_listContext ctx) {
 		ClassDescription.ClassDeclaration cDec = chooseMapAndDeclaration(gClassName);
-		if (cDec.getTag().contains("StorageService")) {
-			cDec.setTag(cDec.getTag());
-		}
+		ClassDescription.ClassDeclaration cDec2 = new ClassDescription.ClassDeclaration();
+		// if (cDec.getTag().contains("StorageService")) {
+		// cDec.setTag(cDec.getTag());
+		// }
 		if (ctx.declaration() != null) {
 			for (DeclarationContext decs : ctx.declaration()) {
 				String code = getCode(decs);
@@ -1996,12 +2017,15 @@ public class ParserObjcListener extends ObjCBaseListener {
 			for (Class_method_declarationContext mDec : ctx
 					.class_method_declaration()) {
 				cDec.addMethod_declaration(getCode(mDec));
+				cDec2.addMethod_declaration(getCode(mDec));
 			}
 		}
 		if (ctx.instance_method_declaration() != null) {
 			for (Instance_method_declarationContext mDec : ctx
 					.instance_method_declaration()) {
-				cDec.addMethod_declaration(getCode(mDec));
+				String cc = getCode(mDec);
+				cDec.addMethod_declaration(cc);
+				cDec2.addMethod_declaration(cc);
 			}
 		}
 		if (ctx.property_declaration() != null) {
@@ -2012,6 +2036,7 @@ public class ParserObjcListener extends ObjCBaseListener {
 				}
 			}
 		}
+		setDeclaration(ctx, cDec2);
 		setCode(ctx, "");
 	}
 
@@ -2124,7 +2149,26 @@ public class ParserObjcListener extends ObjCBaseListener {
 	@Override
 	public void exitProtocol_declaration(
 			ObjCParser.Protocol_declarationContext ctx) {
+		String code = ctx.getText();
+		String.format("%s", code);
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(getCode(ctx.protocol_name()));
+		if (ctx.interface_declaration_list() != null) {
+			ClassDescription.ClassDeclaration cDec = getDeclaration(ctx
+					.interface_declaration_list());
+			for (String dec : cDec.getMethod_declarations()) {
+				list.add(dec);
+			}
+		}
+		setList(ctx, list);
 		setCode(ctx, "");
+	}
+
+	@Override
+	public void exitProtocol_name(ObjCParser.Protocol_nameContext ctx) {
+		String code = ctx.getText();
+		String.format("%s", code);
+		setCode(ctx, code);
 	}
 
 	@Override
@@ -2133,7 +2177,8 @@ public class ParserObjcListener extends ObjCBaseListener {
 		setCode(ctx, "");
 	}
 
-	@Override public void exitEncode_expression(ObjCParser.Encode_expressionContext ctx) { 
+	@Override
+	public void exitEncode_expression(ObjCParser.Encode_expressionContext ctx) {
 		String message = ctx.getText();
 		String.format("%s", message);
 		String code = getCode(ctx.type_name());
@@ -2165,10 +2210,12 @@ public class ParserObjcListener extends ObjCBaseListener {
 		String code = codeFormat.convertDefineToAssignment(ctx.identifier()
 				.getText(), getCode(ctx.constant_expression()));
 	}
-	@Override public void exitCode_block(ObjCParser.Code_blockContext ctx) { 
+
+	@Override
+	public void exitCode_block(ObjCParser.Code_blockContext ctx) {
 		String cd = ctx.getText();
 		String.format("%s", cd);
-		
+
 		setCode(ctx, "");
 	}
 
@@ -2199,4 +2246,18 @@ public class ParserObjcListener extends ObjCBaseListener {
 			System.exit(10);
 		}
 	}
+
+	private void writeProtocols(String mainFileName, ArrayList<String> protocols) {
+		String path = new File(mainFileName).getParent();
+		File f = new File(path, protocols.get(0) + ".java");
+		if (protocols.size() > 1) {
+			String code = "public interface " + protocols.get(0) + " {";
+			for (int i = 1; i < protocols.size(); i++) {
+				code += "\n\t" + protocols.get(i) + ";";
+			}
+			code += "\n}";
+			writeOutput(f.getAbsolutePath(), code);
+		}
+	}
+
 }

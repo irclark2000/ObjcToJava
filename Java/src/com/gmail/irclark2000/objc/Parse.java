@@ -109,6 +109,9 @@ public class Parse {
 				options.setInputFileName(headerFileName);
 				options.setClassName(baseName);
 				cd.setTempClassName(baseName);
+				String	fName = combinePathWithFileName(
+							directoryName, "dummy");
+				options.setOutputFileName(fName);
 				BufferedInputStream instream = null;
 				instream = new BufferedInputStream(new FileInputStream(
 						headerFileName));
@@ -349,7 +352,7 @@ public class Parse {
 		}
 	}
 
-	private static String baseNameFromPath(String fName) {
+	static String baseNameFromPath(String fName) {
 		File f = new File(fName);
 		String bName = f.getName();
 		return getBaseName(bName);

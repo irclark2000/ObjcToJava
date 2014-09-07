@@ -5,10 +5,10 @@
 #  OPENGL translations
 #
 #  OPENGL Identifier Translations
--replaceID  "GLKMatrix4" "float []" 
--replaceID  "GLKVector4" "float []" 
--replaceID  "GLKVector3" "float []" 
--replaceID  "GLKVector2" "float []" 
+-replaceID  "GLKMatrix4" "Matrix4" 
+-replaceID  "GLKVector4" "Vector4" 
+-replaceID  "GLKVector3" "Vector3" 
+-replaceID  "GLKVector2" "Vector2" 
 -replaceID  "NSURL" "URL"
 -replaceID  "NSURLRequest" "HttpURLConnection"
 -replaceID  "NSMutableURLRequest" "HttpURLConnection"
@@ -28,8 +28,10 @@
 -replaceFunc "GLKMatrix4MakePerspective(" "MatrixMath.Matrix4MakePerspective("
 -replaceFunc "GLKMathDegreesToRadians(" "MatrixMath.MathDegreesToRadians("
 -replaceFunc "GLKMatrix4MakeLookAt(" "MatrixMath.Matrix4MakeLookAt("
+-replaceFunc "GLKMatrix4MakeOrtho(" "MatrixMath.Matrix4MakeOrtho("
 -replaceFunc "GLKMatrix4TranslateWithVector3(" "MatrixMath.Matrix4TranslateWithVector3("
 -replaceFunc "GLKMatrix4Scale(" "MatrixMath.Matrix4Scale("
+-replaceFunc "GLKMatrix4MakeScale(" "MatrixMath.Matrix4MakeScale("
 -replaceFunc "GLKVector3Make(" "MatrixMath.Vector3Make("
 -replaceFunc "GLKVector2Make(" "MatrixMath.Vector2Make("
 
